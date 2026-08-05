@@ -1,0 +1,47 @@
+# 依赖与构建产物
+node_modules/
+**/node_modules/
+frontend/dist/
+frontend/apps/nuxt/.nuxt/
+frontend/apps/nuxt/.output/
+frontend/apps/nuxt/dist/
+frontend/apps/nuxt/node_modules/
+frontend/packages/*/node_modules/
+
+# 打包产物(安装包很大,不入库)
+desktop/release/
+desktop/build/
+
+# 内部文档(个人使用细节,不公开)
+CLAUDE.md
+AI_PROMPT.md
+.claude/
+
+# 上游参考副本(README 已链接上游,避免重复入库)
+TypeWords/
+YoudaoTranslator/
+
+# 字体原始文件(子集化 woff2 已入库;ttf 源文件 ~150MB 不入库)
+/MiSans-*.ttf
+
+# 本地临时与工具数据
+desktop/resources/tmp/
+.tmp-dict/
+maimemo-export/
+__pycache__/
+*.pyc
+
+# 代码索引与工具
+.codegraph/
+
+# Wudao-dict 嵌套 git 仓库(只提交数据内容,不含 .git)
+Wudao-dict/.git/
+
+# 系统与编辑器
+.DS_Store
+Thumbs.db
+*.log
+
+# 用户数据与密钥类(以防万一)
+*.key
+*.pem

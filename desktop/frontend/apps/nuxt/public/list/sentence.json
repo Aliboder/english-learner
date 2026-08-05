@@ -1,0 +1,15 @@
+[
+  {
+    "id": "IELTS-oral-900",
+    "name": "雅思口语 900 beta版",
+    "description": "雅思口语 900 句",
+    "category": "国际考试",
+    "tags": [
+      "IELTS"
+    ],
+    "url": "IELTS-oral-900.json",
+    "length": 900,
+    "language": "en",
+    "translateLanguage": "zh-CN"
+  }
+]

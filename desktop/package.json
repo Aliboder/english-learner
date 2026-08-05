@@ -1,0 +1,60 @@
+{
+  "name": "english-learner",
+  "productName": "EnglishLearner",
+  "license": "GPL-3.0",
+  "version": "0.3.21",
+  "private": true,
+  "author": "EnglishLearner",
+  "description": "英语学习桌面应用 — 基于 TypeWords 的本地版",
+  "main": "main.js",
+  "scripts": {
+    "build:web": "cd frontend && pnpm run build",
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "dist": "electron-builder --win nsis",
+    "smoke": "electron . --smoke-test"
+  },
+  "build": {
+    "appId": "com.englishlearner.app",
+    "productName": "EnglishLearner",
+    "directories": {
+      "output": "release"
+    },
+    "electronDist": "node_modules/electron/dist",
+    "files": [
+      "main.js",
+      "preload.js",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "frontend/dist",
+        "to": "web"
+      }
+    ],
+    "win": {
+      "icon": "build/icon.png",
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": false,
+      "createDesktopShortcut": true
+    }
+  },
+  "devDependencies": {
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3"
+  },
+  "dependencies": {
+    "ws": "^8.21.2"
+  }
+}

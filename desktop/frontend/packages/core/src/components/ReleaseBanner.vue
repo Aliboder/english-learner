@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Close } from '@typewords/base'
+import { Close } from '@english-learner/base'
 import { useI18n } from 'vue-i18n'
 import { useNav } from '../utils'
 import type { ReleaseFeatureType } from '../config/releaseNotes'

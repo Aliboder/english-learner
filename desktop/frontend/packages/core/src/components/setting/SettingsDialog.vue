@@ -9,7 +9,7 @@ import {
   isEmpty,
   loadJsLib,
 } from '../../utils'
-import { BaseButton, Collapse, PopConfirm, Switch, Toast, UploadButton } from '@typewords/base'
+import { BaseButton, Collapse, PopConfirm, Switch, Toast, UploadButton } from '@english-learner/base'
 import { getDefaultBaseState, useBaseStore } from '../../stores/base'
 import {
   APP_NAME,
@@ -34,7 +34,7 @@ import SettingItem from './SettingItem.vue'
 import { clearAllTtsCaches } from '../../hooks/preloadTts'
 import type { BackupData, Snapshot } from '../../types'
 
-const Dialog = defineAsyncComponent(() => import('@typewords/base/Dialog'))
+const Dialog = defineAsyncComponent(() => import('@english-learner/base/Dialog'))
 
 type HistoryBackupIndexItem = {
   hash: string

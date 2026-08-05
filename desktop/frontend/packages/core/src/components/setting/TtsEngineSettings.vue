@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Option, Select, Slider, VolumeIcon } from '@typewords/base'
+import { Option, Select, Slider, VolumeIcon } from '@english-learner/base'
 import SettingItem from './SettingItem.vue'
 import { playEdgeTts } from '../../hooks/sound.ts'
 import { useSettingStore } from '../../stores/setting'

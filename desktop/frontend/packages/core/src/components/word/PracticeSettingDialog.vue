@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { _getAccomplishDays } from '../../utils'
-import { BaseButton, Close, InputNumber, Slider, Tooltip, Toast } from '@typewords/base'
+import { BaseButton, Close, InputNumber, Slider, Tooltip, Toast } from '@english-learner/base'
 import { onMounted, onUnmounted, watch } from 'vue'
 import { useSettingStore } from '../../stores/setting'
 import ChangeLastPracticeIndexDialog from './ChangeLastPracticeIndexDialog.vue'
 import { useRuntimeStore } from '../../stores/runtime'
-import { BaseInput } from '@typewords/base'
+import { BaseInput } from '@english-learner/base'
 
 const settings = useSettingStore()
 const runtimeStore = useRuntimeStore()

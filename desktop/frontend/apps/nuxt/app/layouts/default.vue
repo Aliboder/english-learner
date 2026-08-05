@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import useTheme from '@typewords/core/hooks/theme.ts'
-import { applyWordFont } from '@typewords/core/hooks/font.ts'
-import { useSettingStore } from '@typewords/core/stores/setting.ts'
+import useTheme from '@english-learner/core/hooks/theme.ts'
+import { applyWordFont } from '@english-learner/core/hooks/font.ts'
+import { useSettingStore } from '@english-learner/core/stores/setting.ts'
 import { onMounted, provide, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import 'vue-virtual-scroller/dist/vue-virtual-scroller.css'
-import { useInit } from '@typewords/core/composables/useInit.ts'
-import WordCollectPopover from '@typewords/core/components/word/WordCollectPopover.vue'
-import SettingsDialog from '@typewords/core/components/setting/SettingsDialog.vue'
-import { useExport } from '@typewords/core/hooks/export'
-import { ensurePersistedCacheLoaded } from '@typewords/core/hooks/preloadTts.ts'
-import { Toast } from '@typewords/base'
+import { useInit } from '@english-learner/core/composables/useInit.ts'
+import WordCollectPopover from '@english-learner/core/components/word/WordCollectPopover.vue'
+import SettingsDialog from '@english-learner/core/components/setting/SettingsDialog.vue'
+import { useExport } from '@english-learner/core/hooks/export'
+import { ensurePersistedCacheLoaded } from '@english-learner/core/hooks/preloadTts.ts'
+import { Toast } from '@english-learner/base'
 
 const router = useRouter()
 const { setTheme } = useTheme()

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, provide } from 'vue'
 import { useSettingStore } from '../stores/setting'
-import { Tooltip, Close } from '@typewords/base'
+import { Tooltip, Close } from '@english-learner/base'
 import { ShortcutKey } from '../types'
 
 const settingStore = useSettingStore()

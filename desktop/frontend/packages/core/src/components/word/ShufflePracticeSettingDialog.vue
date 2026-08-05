@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { BaseButton, InputNumber, Slider, Toast } from '@typewords/base'
+import { BaseButton, InputNumber, Slider, Toast } from '@english-learner/base'
 import { computed, defineAsyncComponent, watch } from 'vue'
 import { useBaseStore } from '../../stores/base.ts'
 import { WordPracticeModeNameMap } from '../../config/env'
 import { useSettingStore } from '../../stores/setting.ts'
 import { getShufflePracticeWords, toShufflePracticeRange, type ShufflePracticeSetting } from '../../utils'
-const Dialog = defineAsyncComponent(() => import('@typewords/base/Dialog'))
+const Dialog = defineAsyncComponent(() => import('@english-learner/base/Dialog'))
 
 const MIN_RANGE_WORD_COUNT = 5
 const MIN_RANGE_GAP = MIN_RANGE_WORD_COUNT - 1

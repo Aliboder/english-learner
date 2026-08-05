@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useBaseStore } from '@typewords/core/stores/base.ts'
-import { BaseButton } from '@typewords/base'
-import { msToHourMinute } from '@typewords/core/utils'
-import { usePracticeWordPersistence } from '@typewords/core/composables/usePracticePersistence'
+import { useBaseStore } from '@english-learner/core/stores/base.ts'
+import { BaseButton } from '@english-learner/base'
+import { msToHourMinute } from '@english-learner/core/utils'
+import { usePracticeWordPersistence } from '@english-learner/core/composables/usePracticePersistence'
 import dayjs from 'dayjs'
 import isToday from 'dayjs/plugin/isToday' // ES 2015
 import utc from 'dayjs/plugin/utc'
-import Header from '@typewords/core/components/Header.vue'
+import Header from '@english-learner/core/components/Header.vue'
 
 dayjs.extend(isToday)
 dayjs.extend(utc)

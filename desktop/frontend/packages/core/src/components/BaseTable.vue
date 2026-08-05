@@ -11,7 +11,7 @@ import {
   MiniDialog,
   Pagination,
   PopConfirm,
-} from '@typewords/base'
+} from '@english-learner/base'
 import { debounce } from '../utils'
 import Empty from '../components/Empty.vue'
 import { Sort } from '../types'

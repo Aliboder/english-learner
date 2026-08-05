@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Dict } from '../types'
-import { Checkbox, Progress } from '@typewords/base'
+import { Checkbox, Progress } from '@english-learner/base'
 import { withAppBaseURL } from '../utils/base-url'
 
 interface IProps {

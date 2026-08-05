@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Word } from '../../types'
 import { usePlayWordAudio } from '../../hooks/sound.ts'
-import { BaseIcon, Tooltip, VolumeIcon } from '@typewords/base'
+import { BaseIcon, Tooltip, VolumeIcon } from '@english-learner/base'
 import { useWordOptions } from '../../hooks/dict.ts'
 import { getWordStatus, WORD_STATUS_INFO } from '../../hooks/wordStatus.ts'
 import { openWordCollectPicker } from '../../hooks/useWordCollectPicker.ts'

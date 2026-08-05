@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { nextTick, ref, watch } from 'vue'
-import { Radio, RadioGroup } from '@typewords/base'
+import { Radio, RadioGroup } from '@english-learner/base'
 import { useBaseStore } from '../../stores/base.ts'
 
 const store = useBaseStore()

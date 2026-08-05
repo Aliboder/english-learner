@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BaseButton } from '@typewords/base'
+import { BaseButton } from '@english-learner/base'
 
 defineProps<{
   text?: string

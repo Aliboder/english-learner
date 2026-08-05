@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BaseIcon, Close, VolumeIcon } from '@typewords/base'
+import { BaseIcon, Close, VolumeIcon } from '@english-learner/base'
 import { computed, nextTick, onMounted, onUnmounted, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useSettingStore } from '../../stores/setting.ts'

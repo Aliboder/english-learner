@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { BaseButton, BaseInput, Checkbox, Toast } from '@typewords/base'
-import { MessageBox } from '@typewords/core/utils/MessageBox.tsx'
+import { BaseButton, BaseInput, Checkbox, Toast } from '@english-learner/base'
+import { MessageBox } from '@english-learner/core/utils/MessageBox.tsx'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 

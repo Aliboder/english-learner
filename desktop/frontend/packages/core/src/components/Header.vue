@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BackIcon } from '@typewords/base'
+import { BackIcon } from '@english-learner/base'
 import { useAttrs } from 'vue'
 
 interface IProps {

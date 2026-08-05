@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-import { Loading } from '@typewords/base'
+import { Loading } from '@english-learner/base'
 
 export default defineNuxtPlugin((nuxtApp) => {
   // v-opacity: 根据布尔值控制透明度

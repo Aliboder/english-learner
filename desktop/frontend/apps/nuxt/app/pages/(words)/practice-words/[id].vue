@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, provide, watch } from 'vue'
-import Statistics from '@typewords/core/components/word/Statistics.vue'
-import { emitter, EventKey, useEvents } from '@typewords/core/utils/eventBus.ts'
-import { useSettingStore } from '@typewords/core/stores/setting.ts'
-import { useRuntimeStore } from '@typewords/core/stores/runtime.ts'
-import type { Dict, PracticeData, TaskWords, Word } from '@typewords/core/types/types.ts'
-import { useStartKeyboardEventListener } from '@typewords/core/hooks/event.ts'
-import { schedulePrefetch, clearTtsCaches, ensurePersistedCacheLoaded } from '@typewords/core/hooks/preloadTts.ts'
-import { cancelWordPracticeAudio } from '@typewords/core/hooks/sound.ts'
-import useTheme from '@typewords/core/hooks/theme.ts'
-import { getCurrentStudyWord, useWordOptions } from '@typewords/core/hooks/dict.ts'
-import { openWordCollectPicker } from '@typewords/core/hooks/useWordCollectPicker.ts'
+import Statistics from '@english-learner/core/components/word/Statistics.vue'
+import { emitter, EventKey, useEvents } from '@english-learner/core/utils/eventBus.ts'
+import { useSettingStore } from '@english-learner/core/stores/setting.ts'
+import { useRuntimeStore } from '@english-learner/core/stores/runtime.ts'
+import type { Dict, PracticeData, TaskWords, Word } from '@english-learner/core/types/types.ts'
+import { useStartKeyboardEventListener } from '@english-learner/core/hooks/event.ts'
+import { schedulePrefetch, clearTtsCaches, ensurePersistedCacheLoaded } from '@english-learner/core/hooks/preloadTts.ts'
+import { cancelWordPracticeAudio } from '@english-learner/core/hooks/sound.ts'
+import useTheme from '@english-learner/core/hooks/theme.ts'
+import { getCurrentStudyWord, useWordOptions } from '@english-learner/core/hooks/dict.ts'
+import { openWordCollectPicker } from '@english-learner/core/hooks/useWordCollectPicker.ts'
 import {
   _getDictDataByUrl,
   cloneDeep,
@@ -19,34 +19,34 @@ import {
   resourceWrap,
   shuffle,
   throttle,
-} from '@typewords/core/utils'
+} from '@english-learner/core/utils'
 import { useRoute, useRouter } from 'vue-router'
 import dayjs from 'dayjs'
-import Footer from '@typewords/core/components/word/Footer.vue'
-import Panel from '@typewords/core/components/Panel.vue'
-import { BaseIcon, Toast, ToastComponent, Tooltip } from '@typewords/base'
-import WordList from '@typewords/core/components/list/WordList.vue'
-import TypeWord from '@typewords/core/components/word/TypeWord.vue'
-import Empty from '@typewords/core/components/Empty.vue'
-import { useBaseStore } from '@typewords/core/stores/base.ts'
-import { usePracticeStore } from '@typewords/core/stores/practice.ts'
-import { getDefaultDict, getDefaultWord } from '@typewords/core/types/func.ts'
-import PracticeLayout from '@typewords/core/components/PracticeLayout.vue'
-import { DICT_LIST, WordPracticeModeStageMap } from '@typewords/core/config/env.ts'
-import GroupList from '@typewords/core/components/word/GroupList.vue'
-import { useDataSyncPersistence } from '@typewords/core/composables/useDataSyncPersistence.ts'
-import { flushStatToStore, usePracticeWordPersistence } from '@typewords/core/composables/usePracticePersistence.ts'
+import Footer from '@english-learner/core/components/word/Footer.vue'
+import Panel from '@english-learner/core/components/Panel.vue'
+import { BaseIcon, Toast, ToastComponent, Tooltip } from '@english-learner/base'
+import WordList from '@english-learner/core/components/list/WordList.vue'
+import TypeWord from '@english-learner/core/components/word/TypeWord.vue'
+import Empty from '@english-learner/core/components/Empty.vue'
+import { useBaseStore } from '@english-learner/core/stores/base.ts'
+import { usePracticeStore } from '@english-learner/core/stores/practice.ts'
+import { getDefaultDict, getDefaultWord } from '@english-learner/core/types/func.ts'
+import PracticeLayout from '@english-learner/core/components/PracticeLayout.vue'
+import { DICT_LIST, WordPracticeModeStageMap } from '@english-learner/core/config/env.ts'
+import GroupList from '@english-learner/core/components/word/GroupList.vue'
+import { useDataSyncPersistence } from '@english-learner/core/composables/useDataSyncPersistence.ts'
+import { flushStatToStore, usePracticeWordPersistence } from '@english-learner/core/composables/usePracticePersistence.ts'
 import {
   IdentifyMethod,
   ShortcutKey,
   WordPracticeMode,
   WordPracticeStage,
   WordPracticeType,
-} from '@typewords/core/types/enum.ts'
+} from '@english-learner/core/types/enum.ts'
 import { createEmptyCard, Rating } from 'ts-fsrs'
-import { useGetGradeByWrongTimes, useNextCard } from '@typewords/core/hooks/fsrs.ts'
-import WordMarkPickList, { type WordMarkPickResult } from '@typewords/core/components/word/WordMarkPickList.vue'
-import { buildQuestion } from '@typewords/core/utils/word-test.ts'
+import { useGetGradeByWrongTimes, useNextCard } from '@english-learner/core/hooks/fsrs.ts'
+import WordMarkPickList, { type WordMarkPickResult } from '@english-learner/core/components/word/WordMarkPickList.vue'
+import { buildQuestion } from '@english-learner/core/utils/word-test.ts'
 
 const { isWordSimple, toggleWordSimple } = useWordOptions()
 const settingStore = useSettingStore()

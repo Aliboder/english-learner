@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import { groupBy, resourceWrap, useNav } from '@typewords/core/utils'
-import { BackIcon, BaseButton, BaseIcon, BaseInput, BasePage } from '@typewords/base'
-import type { DictResource } from '@typewords/core/types/types.ts'
-import { useRuntimeStore } from '@typewords/core/stores/runtime.ts'
-import Empty from '@typewords/core/components/Empty.vue'
-import DictCardList from '@typewords/core/components/list/DictCardList.vue'
-import DictGroup from '@typewords/core/components/list/DictGroup.vue'
-import { useBaseStore } from '@typewords/core/stores/base.ts'
+import { groupBy, resourceWrap, useNav } from '@english-learner/core/utils'
+import { BackIcon, BaseButton, BaseIcon, BaseInput, BasePage } from '@english-learner/base'
+import type { DictResource } from '@english-learner/core/types/types.ts'
+import { useRuntimeStore } from '@english-learner/core/stores/runtime.ts'
+import Empty from '@english-learner/core/components/Empty.vue'
+import DictCardList from '@english-learner/core/components/list/DictCardList.vue'
+import DictGroup from '@english-learner/core/components/list/DictGroup.vue'
+import { useBaseStore } from '@english-learner/core/stores/base.ts'
 import { useRouter } from 'vue-router'
-import { getDefaultDict } from '@typewords/core/types/func.ts'
+import { getDefaultDict } from '@english-learner/core/types/func.ts'
 import { useFetch } from '@vueuse/core'
-import { DICT_LIST } from '@typewords/core/config/env.ts'
+import { DICT_LIST } from '@english-learner/core/config/env.ts'
 
 const { nav } = useNav()
 const runtimeStore = useRuntimeStore()

@@ -33,7 +33,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { Tooltip, Progress } from '@typewords/base'
+import { Tooltip, Progress } from '@english-learner/base'
 
 const props = defineProps<{
   stages: {

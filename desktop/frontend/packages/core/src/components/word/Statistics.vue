@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useBaseStore } from '../../stores/base.ts'
-import { BaseButton, Loading, Progress } from '@typewords/base'
+import { BaseButton, Loading, Progress } from '@english-learner/base'
 import type { PracticeData } from '../../types'
 import { ShortcutKey, WordPracticeMode } from '../../types'
 import { emitter, EventKey, useEvents } from '../../utils/eventBus'
@@ -16,7 +16,7 @@ import { useI18n } from 'vue-i18n'
 dayjs.extend(isoWeek)
 dayjs.extend(isBetween)
 const { t: $t } = useI18n()
-const Dialog = defineAsyncComponent(() => import('@typewords/base/Dialog'))
+const Dialog = defineAsyncComponent(() => import('@english-learner/base/Dialog'))
 
 const props = defineProps({
   loading: Boolean,

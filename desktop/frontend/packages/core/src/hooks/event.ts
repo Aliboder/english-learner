@@ -2,7 +2,7 @@ import { onDeactivated, onMounted, onUnmounted, watch } from 'vue'
 import { emitter, EventKey } from '../utils/eventBus'
 import { useSettingStore } from '../stores'
 import { isMobile } from '../utils'
-import { Toast } from '@typewords/base'
+import { Toast } from '@english-learner/base'
 
 const CODE_TO_CHAR: Record<string, string> = {
   ...Object.fromEntries('ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => [`Key${c}`, c.toLowerCase()])),

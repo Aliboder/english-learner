@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useBaseStore } from '@typewords/core/stores/base.ts'
+import { useBaseStore } from '@english-learner/core/stores/base.ts'
 import { useRouter } from 'vue-router'
 import {
   BaseButton,
@@ -13,7 +13,7 @@ import {
   PopConfirm,
   Progress,
   Toast,
-} from '@typewords/base'
+} from '@english-learner/base'
 import {
   _getAccomplishDate,
   _getDictDataByUrl,
@@ -24,34 +24,34 @@ import {
   type ShufflePracticeSetting,
   total,
   useNav,
-} from '@typewords/core/utils'
-import type { DictResource, Statistics, Word } from '@typewords/core/types/types.ts'
-import WordDetail from '@typewords/core/components/word/WordDetail.vue'
-import { ensureDictIndex, loadDictWords } from '@typewords/core/hooks/dictIndex'
+} from '@english-learner/core/utils'
+import type { DictResource, Statistics, Word } from '@english-learner/core/types/types.ts'
+import WordDetail from '@english-learner/core/components/word/WordDetail.vue'
+import { ensureDictIndex, loadDictWords } from '@english-learner/core/hooks/dictIndex'
 import { inject, watch } from 'vue'
-import { getCurrentStudyWord } from '@typewords/core/hooks/dict.ts'
-import { useRuntimeStore } from '@typewords/core/stores/runtime.ts'
-import Empty from '@typewords/core/components/Empty.vue'
-import { getDefaultDict } from '@typewords/core/types/func.ts'
-import { DeleteIcon } from '@typewords/base'
-import PracticeSettingDialog from '@typewords/core/components/word/PracticeSettingDialog.vue'
-import ChangeLastPracticeIndexDialog from '@typewords/core/components/word/ChangeLastPracticeIndexDialog.vue'
-import { useSettingStore } from '@typewords/core/stores/setting.ts'
+import { getCurrentStudyWord } from '@english-learner/core/hooks/dict.ts'
+import { useRuntimeStore } from '@english-learner/core/stores/runtime.ts'
+import Empty from '@english-learner/core/components/Empty.vue'
+import { getDefaultDict } from '@english-learner/core/types/func.ts'
+import { DeleteIcon } from '@english-learner/base'
+import PracticeSettingDialog from '@english-learner/core/components/word/PracticeSettingDialog.vue'
+import ChangeLastPracticeIndexDialog from '@english-learner/core/components/word/ChangeLastPracticeIndexDialog.vue'
+import { useSettingStore } from '@english-learner/core/stores/setting.ts'
 import { useFetch } from '@vueuse/core'
 import {
   APP_NAME,
   DICT_LIST,
   WordPracticeModeNameMap,
   WordPracticeModeUrlMap,
-} from '@typewords/core/config/env.ts'
-import PracticeWordListDialog from '@typewords/core/components/word/PracticeWordListDialog.vue'
-import ReviewPlanDialog from '@typewords/core/components/word/ReviewPlanDialog.vue'
-import ReleaseBanner from '@typewords/core/components/ReleaseBanner.vue'
-import ShufflePracticeSettingDialog from '@typewords/core/components/word/ShufflePracticeSettingDialog.vue'
-import { flushStatToStore, usePracticeWordPersistence } from '@typewords/core/composables/usePracticePersistence'
-import { useDataSyncPersistence } from '@typewords/core/composables/useDataSyncPersistence'
-import { WordPracticeMode } from '@typewords/core/types/enum.ts'
-import type { PracticeWordCache } from '@typewords/core/utils/cache.ts'
+} from '@english-learner/core/config/env.ts'
+import PracticeWordListDialog from '@english-learner/core/components/word/PracticeWordListDialog.vue'
+import ReviewPlanDialog from '@english-learner/core/components/word/ReviewPlanDialog.vue'
+import ReleaseBanner from '@english-learner/core/components/ReleaseBanner.vue'
+import ShufflePracticeSettingDialog from '@english-learner/core/components/word/ShufflePracticeSettingDialog.vue'
+import { flushStatToStore, usePracticeWordPersistence } from '@english-learner/core/composables/usePracticePersistence'
+import { useDataSyncPersistence } from '@english-learner/core/composables/useDataSyncPersistence'
+import { WordPracticeMode } from '@english-learner/core/types/enum.ts'
+import type { PracticeWordCache } from '@english-learner/core/utils/cache.ts'
 import dayjs from 'dayjs'
 
 const { t } = useI18n()

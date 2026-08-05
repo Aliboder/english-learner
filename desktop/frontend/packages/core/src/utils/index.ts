@@ -26,7 +26,7 @@ import {
   SAVE_DICT_KEY,
 } from '../config/env'
 import { nextTick } from 'vue'
-import { Toast } from '@typewords/base'
+import { Toast } from '@english-learner/base'
 import { get } from 'idb-keyval'
 import { nanoid } from 'nanoid'
 import { saveHashSnapshot } from '../composables/useDataSyncPersistence'

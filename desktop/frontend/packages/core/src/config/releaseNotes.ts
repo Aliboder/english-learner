@@ -19,6 +19,16 @@ export interface ReleaseVersion {
 export const RELEASE_NOTES: ReleaseVersion[] = [
   {
     version: APP_VERSION.version,
+    date: '2026-08-06',
+    title: '项目清理与体积优化',
+    summary: '移除上游残留内容,包名统一,导入模板本地化,安装包更小',
+    features: [
+      { type: 'improve', title: '上游残留清理', desc: '移除 TypeWords 在线站残留(SEO/官网内容/无用页面),删除死代码与 100MB 冗余备份,仓库更干净' },
+      { type: 'improve', title: '包名统一', desc: '内部包名统一为 @english-learner,导入页简化(仅单词导入),模板文件本地生成,完全离线可用' },
+    ],
+  },
+  {
+    version: 3,
     date: '2026-08-05',
     title: '发布前打磨完成',
     summary: '例句朗读、自动切换、全局字体、性能与体积优化,纯中文界面',

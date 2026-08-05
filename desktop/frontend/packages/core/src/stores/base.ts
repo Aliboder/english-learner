@@ -4,7 +4,7 @@ import { _getStudyProgress, checkAndUpgradeSaveDict, isSameDictResource, parseJs
 import { shallowReactive } from 'vue'
 import { get } from 'idb-keyval'
 import { DictId, IS_DEV, SAVE_DICT_KEY } from '../config/env'
-import { Toast } from '@typewords/base'
+import { Toast } from '@english-learner/base'
 import type { Card } from 'ts-fsrs'
 
 export interface BaseState {

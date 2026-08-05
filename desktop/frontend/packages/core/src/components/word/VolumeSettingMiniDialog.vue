@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BaseIcon, MiniDialog, Option, Select, Switch, VolumeIcon } from '@typewords/base'
+import { BaseIcon, MiniDialog, Option, Select, Switch, VolumeIcon } from '@english-learner/base'
 import { SoundFileOptions } from '../../config/env.ts'
 import { useWindowClick } from '../../hooks/event.ts'
 import { getAudioFileUrl, usePlayAudio } from '../../hooks/sound.ts'

@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import { BasePage } from '@typewords/base'
-import { APP_NAME, APP_VERSION } from '@typewords/core/config/env'
-import { RELEASE_NOTES, type ReleaseFeatureType } from '@typewords/core/config/releaseNotes'
-import { useReleaseNotification } from '@typewords/core/composables/useReleaseNotification'
+import { BasePage } from '@english-learner/base'
+import { APP_NAME, APP_VERSION } from '@english-learner/core/config/env'
+import { RELEASE_NOTES, type ReleaseFeatureType } from '@english-learner/core/config/releaseNotes'
+import { useReleaseNotification } from '@english-learner/core/composables/useReleaseNotification'
 import { onMounted } from 'vue'
-import Header from '@typewords/core/components/Header.vue'
+import Header from '@english-learner/core/components/Header.vue'
 
 const { t } = useI18n()
 const { markReleaseSeen } = useReleaseNotification()

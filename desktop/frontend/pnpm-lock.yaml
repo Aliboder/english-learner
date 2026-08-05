@@ -201,34 +201,28 @@ importers:
 
   apps/nuxt:
     dependencies:
-      '@typewords/base':
+      '@english-learner/base':
         specifier: workspace:*
         version: link:../../packages/base
-      '@typewords/core':
+      '@english-learner/core':
         specifier: workspace:*
         version: link:../../packages/core
-      '@typewords/libs':
-        specifier: workspace:*
-        version: link:../../packages/libs
-      '@typewords/utils':
+      '@english-learner/utils':
         specifier: workspace:*
         version: link:../../packages/utils
 
   packages/base:
     dependencies:
-      '@typewords/utils':
+      '@english-learner/utils':
         specifier: workspace:*
         version: link:../utils
 
   packages/core:
     dependencies:
-      '@typewords/base':
+      '@english-learner/base':
         specifier: workspace:*
         version: link:../base
-      '@typewords/libs':
-        specifier: workspace:*
-        version: link:../libs
-      '@typewords/utils':
+      '@english-learner/utils':
         specifier: workspace:*
         version: link:../utils
     devDependencies:
@@ -238,8 +232,6 @@ importers:
       vite:
         specifier: ^7.0.3
         version: 7.3.1(@types/node@22.19.7)(jiti@2.6.1)(less@4.5.1)(lightningcss@1.32.0)(sass@1.97.3)(terser@5.46.2)(yaml@2.8.2)
-
-  packages/libs: {}
 
   packages/utils: {}
 

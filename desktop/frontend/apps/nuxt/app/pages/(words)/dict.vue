@@ -12,21 +12,21 @@ import {
   PopConfirm,
   Textarea,
   Toast,
-} from '@typewords/base'
-import EditBook from '@typewords/core/components/article/EditBook.vue'
-import BaseTable from '@typewords/core/components/BaseTable.vue'
-import PracticeSettingDialog from '@typewords/core/components/word/PracticeSettingDialog.vue'
-import WordItem from '@typewords/core/components/word/WordItem.vue'
-import WordDetail from '@typewords/core/components/word/WordDetail.vue'
-import { flushStatToStore, usePracticeWordPersistence } from '@typewords/core/composables/usePracticePersistence'
-import { DICT_LIST, DictId, LIB_JS_URL } from '@typewords/core/config/env.ts'
-import { getCurrentStudyWord } from '@typewords/core/hooks/dict.ts'
-import { useBaseStore } from '@typewords/core/stores/base.ts'
-import { useRuntimeStore } from '@typewords/core/stores/runtime.ts'
-import { useSettingStore } from '@typewords/core/stores/setting.ts'
-import { Sort, WordPracticeMode } from '@typewords/core/types/enum.ts'
-import { getDefaultDict, getDefaultWord } from '@typewords/core/types/func.ts'
-import type { Dict, Word } from '@typewords/core/types/types.ts'
+} from '@english-learner/base'
+import EditBook from '@english-learner/core/components/article/EditBook.vue'
+import BaseTable from '@english-learner/core/components/BaseTable.vue'
+import PracticeSettingDialog from '@english-learner/core/components/word/PracticeSettingDialog.vue'
+import WordItem from '@english-learner/core/components/word/WordItem.vue'
+import WordDetail from '@english-learner/core/components/word/WordDetail.vue'
+import { flushStatToStore, usePracticeWordPersistence } from '@english-learner/core/composables/usePracticePersistence'
+import { DICT_LIST, DictId, LIB_JS_URL } from '@english-learner/core/config/env.ts'
+import { getCurrentStudyWord } from '@english-learner/core/hooks/dict.ts'
+import { useBaseStore } from '@english-learner/core/stores/base.ts'
+import { useRuntimeStore } from '@english-learner/core/stores/runtime.ts'
+import { useSettingStore } from '@english-learner/core/stores/setting.ts'
+import { Sort, WordPracticeMode } from '@english-learner/core/types/enum.ts'
+import { getDefaultDict, getDefaultWord } from '@english-learner/core/types/func.ts'
+import type { Dict, Word } from '@english-learner/core/types/types.ts'
 import {
   _getDictDataByUrl,
   _nextTick,
@@ -38,8 +38,8 @@ import {
   reverse,
   shuffle,
   useNav,
-} from '@typewords/core/utils'
-import { getPracticeWordCacheLocal } from '@typewords/core/utils/cache.ts'
+} from '@english-learner/core/utils'
+import { getPracticeWordCacheLocal } from '@english-learner/core/utils/cache.ts'
 import saveAs from 'file-saver'
 import { computed, onMounted, reactive, ref, shallowReactive } from 'vue'
 import { useI18n } from 'vue-i18n'

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BaseIcon, BaseInput, Toast } from '@typewords/base'
+import { BaseIcon, BaseInput, Toast } from '@english-learner/base'
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useWordOptions } from '../../hooks/dict.ts'

@@ -35,11 +35,6 @@
   --color-sub-gray: #c0bfbf;
   --aside-width: 4.5rem;
 
-  --article-width: 50vw;
-  --article-toolbar-width: 50vw;
-  --article-panel-width: 20rem;
-  --article-panel-margin-left: calc(50vw + var(--article-width) / 2 + var(--aside-width) / 2 + 1rem);
-
   --toolbar-width: 50rem;
   --panel-width: 24rem;
 
@@ -188,10 +183,6 @@ html.dark {
     --toolbar-width: 50vw;
     --panel-width: 20rem;
     --space: 0.5rem;
-
-    --article-width: 60vw;
-    --article-toolbar-width: 60vw;
-    --article-panel-width: 17rem;
   }
 }
 
@@ -199,9 +190,6 @@ html.dark {
   :root {
     --panel-width: 25rem;
     --toolbar-width: 60vw;
-    --article-width: 60vw;
-    --article-toolbar-width: 60vw;
-    --article-panel-width: 20rem;
   }
 }
 
@@ -210,16 +198,12 @@ html.dark {
     --toolbar-width: 70vw;
     --stat-gap: 0.5rem;
     --space: 0.3rem;
-    --article-width: 70vw;
-    --article-toolbar-width: 70vw;
   }
 }
 
 @media (max-width: 1150px) {
   :root {
     --toolbar-width: 80vw;
-    --article-width: 85vw;
-    --article-toolbar-width: 85vw;
   }
 }
 
@@ -228,11 +212,8 @@ html.dark {
   :root {
     --toolbar-width: 100vw;
     --panel-width: 100vw;
-    --article-width: 100vw;
-    --article-toolbar-width: 100vw;
     --space: 0.5rem;
     --stat-gap: 0.3rem;
-    --article-panel-width: 100vw;
     --word-panel-margin-left: 0;
   }
 }

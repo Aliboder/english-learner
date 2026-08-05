@@ -4,7 +4,7 @@ import { cloneDeep, ensureCustomDictCopy } from '../../utils'
 import { onMounted, reactive } from 'vue'
 import { useRuntimeStore } from '../../stores/runtime.ts'
 import { useBaseStore } from '../../stores/base.ts'
-import { BaseButton, BaseInput, Form, FormItem, Option, Select, Toast, Textarea } from '@typewords/base'
+import { BaseButton, BaseInput, Form, FormItem, Option, Select, Toast, Textarea } from '@english-learner/base'
 import { getDefaultDict, DictType } from '../../types'
 import { useI18n } from 'vue-i18n'
 

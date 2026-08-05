@@ -1,6 +1,6 @@
 import { createVNode, render } from 'vue'
-import type { ModalProps } from '@typewords/base'
-import { Dialog } from '@typewords/base'
+import type { ModalProps } from '@english-learner/base'
+import { Dialog } from '@english-learner/base'
 
 export class MessageBox {
   static confirm(

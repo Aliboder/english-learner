@@ -4,7 +4,7 @@ import { nextTick, onMounted, ref, watch } from 'vue'
 import { playEdgeTts } from '../../hooks/sound.ts'
 import { useSettingStore } from '../../stores/setting.ts'
 import { simplifyTransCn } from '../../utils'
-import { VolumeIcon } from '@typewords/base'
+import { VolumeIcon } from '@english-learner/base'
 
 const props = withDefaults(
   defineProps<{

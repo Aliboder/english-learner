@@ -4,9 +4,9 @@ import BaseTable from "../../components/BaseTable.vue";
 import WordItem from "./WordItem.vue";
 import { defineAsyncComponent } from "vue";
 import type { TaskWords } from '../../types';
-import { Checkbox } from '@typewords/base'
+import { Checkbox } from '@english-learner/base'
 
-const Dialog = defineAsyncComponent(() => import('@typewords/base/Dialog'))
+const Dialog = defineAsyncComponent(() => import('@english-learner/base/Dialog'))
 
 const model = defineModel()
 defineProps<{

@@ -23,7 +23,7 @@
 
 <script setup lang="ts">
 import { ref, watch, computed, nextTick, onUnmounted } from 'vue'
-import { useDisableEventListener } from '@typewords/utils'
+import { useDisableEventListener } from '@english-learner/utils'
 
 const props = defineProps<{
   modelValue: string

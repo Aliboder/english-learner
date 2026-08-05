@@ -1,5 +1,5 @@
 {
-  "name": "@typewords/nuxt",
+  "name": "@english-learner/nuxt",
   "license": "GPL-3.0",
   "private": true,
   "scripts": {
@@ -8,13 +8,11 @@
     "build": "nuxt build",
     "test": "",
     "static": "node scripts/cleanDist.js && nuxt generate && node scripts/copyDist.js",
-    "preview": "nuxt preview",
-    "i18n:write": "gulp i18nWrite"
+    "preview": "nuxt preview"
   },
   "dependencies": {
-    "@typewords/base": "workspace:*",
-    "@typewords/libs": "workspace:*",
-    "@typewords/core": "workspace:*",
-    "@typewords/utils": "workspace:*"
+    "@english-learner/base": "workspace:*",
+    "@english-learner/core": "workspace:*",
+    "@english-learner/utils": "workspace:*"
   }
 }

@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted } from 'vue'
-import { BaseIcon, Close } from '@typewords/base'
+import { BaseIcon, Close } from '@english-learner/base'
 import CommonSetting from './CommonSetting.vue'
 import WordSetting from './WordSetting.vue'
 import SoundSetting from './SoundSetting.vue'
-import { useDisableEventListener } from '@typewords/utils'
+import { useDisableEventListener } from '@english-learner/utils'
 
 const props = withDefaults(
   defineProps<{

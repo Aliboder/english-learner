@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, useAttrs, watch, computed, onUnmounted } from 'vue'
 import Close from './icon/Close.vue'
-import { useDisableEventListener } from '@typewords/utils'
+import { useDisableEventListener } from '@english-learner/utils'
 
 const props = defineProps({
   modelValue: [String, Number],

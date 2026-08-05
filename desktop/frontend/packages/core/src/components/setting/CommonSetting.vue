@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { BaseButton, Option, Select, Slider, Switch, Textarea } from '@typewords/base'
+import { BaseButton, Option, Select, Slider, Switch, Textarea } from '@english-learner/base'
 import SettingItem from './SettingItem.vue'
 import { useSettingStore } from '../../stores/setting.ts'
 import { useBaseStore } from '../../stores/base.ts'

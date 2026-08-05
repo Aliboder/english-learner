@@ -1,5 +1,5 @@
 {
-  "name": "@typewords/core",
+  "name": "@english-learner/core",
   "version": "1.0.0",
   "description": "",
   "main": "src/index.ts",
@@ -15,9 +15,8 @@
   "keywords": [],
   "author": "",
   "dependencies": {
-    "@typewords/base": "workspace:*",
-    "@typewords/libs": "workspace:*",
-    "@typewords/utils": "workspace:*"
+    "@english-learner/base": "workspace:*",
+    "@english-learner/utils": "workspace:*"
   },
   "devDependencies": {
     "unplugin-vue-macros": "^2.14.5",

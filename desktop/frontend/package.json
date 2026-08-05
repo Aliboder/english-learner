@@ -3,9 +3,9 @@
   "license": "GPL-3.0",
   "private": true,
   "scripts": {
-    "dev": "pnpm -F @typewords/nuxt dev",
-    "start": "pnpm -F @typewords/nuxt dev",
-    "build": "pnpm -F @typewords/nuxt static",
+    "dev": "pnpm -F @english-learner/nuxt dev",
+    "start": "pnpm -F @english-learner/nuxt dev",
+    "build": "pnpm -F @english-learner/nuxt static",
     "test": ""
   },
   "dependencies": {

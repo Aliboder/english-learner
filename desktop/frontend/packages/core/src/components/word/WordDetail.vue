@@ -7,7 +7,7 @@ import { useSettingStore } from '../../stores/setting.ts'
 import { useWordOptions } from '../../hooks/dict.ts'
 import { parseInflections } from '../../utils/inflections.ts'
 import { simplifyTransCn } from '../../utils'
-import { VolumeIcon } from '@typewords/base'
+import { VolumeIcon } from '@english-learner/base'
 
 const settingStore = useSettingStore()
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Option, Select, Slider, Switch, VolumeIcon } from '@typewords/base'
+import { Option, Select, Slider, Switch, VolumeIcon } from '@english-learner/base'
 import SettingItem from './SettingItem.vue'
 import SoundMasterControl from './SoundMasterControl.vue'
 import TtsEngineSettings from './TtsEngineSettings.vue'

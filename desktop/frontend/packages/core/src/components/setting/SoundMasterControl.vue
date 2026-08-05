@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Slider } from '@typewords/base'
+import { Slider } from '@english-learner/base'
 import SettingItem from './SettingItem.vue'
 import { useSettingStore } from '../../stores/setting'
 import type { SettingState } from '../../stores/setting'

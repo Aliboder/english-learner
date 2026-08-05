@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { InputNumber, Slider, Switch, Radio, RadioGroup } from '@typewords/base'
+import { InputNumber, Slider, Switch, Radio, RadioGroup } from '@english-learner/base'
 import SettingItem from './SettingItem.vue'
 import { useSettingStore } from '../../stores/setting.ts'
 import { IdentifyMethod } from '../../types';

@@ -8,13 +8,9 @@ export const IS_DEV = import.meta.env.MODE === 'development'
 const common = {}
 const map = {
   DEV: {
-    // API: 'http://localhost/',
-    API: 'https://api.typewords.cc/',
-    // RESOURCE_URL: 'https://dicts.2study.top/',
-    // RESOURCE_URL: '/',
-    RESOURCE_URL: 'https://files.typewords.cc/',
-    // RESOURCE_URL: 'http://localhost/static/',
-    LIBS_URL: 'https://libs.typewords.cc/',
+    // 桌面版:资源全部走应用内路径,本地加载免联网
+    RESOURCE_URL: '/',
+    LIBS_URL: '/',
   },
 }
 
@@ -40,8 +36,8 @@ export const SoundFileOptions = [
   { value: '笔记本键盘', label: '笔记本键盘' },
 ]
 export const APP_VERSION = {
-  key: 'type-words-app-version',
-  version: 3,
+  key: 'english-learner-app-version',
+  version: 4,
 }
 export const SAVE_DICT_KEY = {
   key: 'typing-word-dict',

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Word } from '../../types'
-import { BaseButton } from '@typewords/base'
+import { BaseButton } from '@english-learner/base'
 import { reactive, ref } from 'vue'
 
 type PaintMode = 'know' | 'unknown' | 'mastered'

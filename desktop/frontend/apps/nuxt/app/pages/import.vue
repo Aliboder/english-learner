@@ -1,20 +1,20 @@
 <script setup lang="ts">
-import { BaseButton, BasePage, Textarea, Toast, UploadButton } from '@typewords/base'
-import { ENV, LIB_JS_URL } from '@typewords/core/config/env.ts'
-import { useBaseStore } from '@typewords/core/stores/base.ts'
-import { useRuntimeStore } from '@typewords/core/stores/runtime.ts'
-import { DictType } from '@typewords/core/types/enum.ts'
-import { getDefaultDict, getDefaultWord } from '@typewords/core/types/func.ts'
-import type { Dict, Word } from '@typewords/core/types/types.ts'
-import { cloneDeep, convertToWord, loadJsLib } from '@typewords/core/utils'
+import { BaseButton, BasePage, Textarea, Toast, UploadButton } from '@english-learner/base'
+import { ENV, LIB_JS_URL } from '@english-learner/core/config/env.ts'
+import { useBaseStore } from '@english-learner/core/stores/base.ts'
+import { useRuntimeStore } from '@english-learner/core/stores/runtime.ts'
+import { DictType } from '@english-learner/core/types/enum.ts'
+import { getDefaultDict, getDefaultWord } from '@english-learner/core/types/func.ts'
+import type { Dict, Word } from '@english-learner/core/types/types.ts'
+import { cloneDeep, convertToWord, loadJsLib } from '@english-learner/core/utils'
 import saveAs from 'file-saver'
 import { nanoid } from 'nanoid'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import Header from '@typewords/core/components/Header.vue'
-import EditBook from '@typewords/core/components/article/EditBook.vue'
-import Book from '@typewords/core/components/Book.vue'
-import { MessageBox } from '@typewords/core/utils/MessageBox.tsx'
+import Header from '@english-learner/core/components/Header.vue'
+import EditBook from '@english-learner/core/components/article/EditBook.vue'
+import Book from '@english-learner/core/components/Book.vue'
+import { MessageBox } from '@english-learner/core/utils/MessageBox.tsx'
 import { useI18n } from 'vue-i18n'
 import type { FailedWordRow } from '~/components/import/WordFailedTable.vue'
 
@@ -59,18 +59,17 @@ const importing = ref(false)
 const importSummary = ref<ImportResultSummary | null>(null)
 const { t } = useI18n()
 
-const importType = computed(() => (route.query.type === 'article' ? 'article' : 'word') as ImportType)
-const isWord = computed(() => importType.value === 'word')
-const source = computed(() => (isWord.value ? base.word : base.article))
-const targetLabel = computed(() => (isWord.value ? '词典' : '书籍'))
-const contentLabel = computed(() => (isWord.value ? '单词' : '文章'))
+const importType = computed(() => 'word' as ImportType)
+const source = computed(() => base.word)
+const targetLabel = '词典'
+const contentLabel = '单词'
 const currentTarget = computed(() => selectedDict.value ?? pendingDict.value)
 const failedCount = computed(() => importSummary.value?.failedItems.length ?? 0)
 const pendingFailedCount = computed(() => importSummary.value?.pendingFailedWords?.length ?? 0)
-const hasPendingFailedWords = computed(() => isWord.value && pendingFailedCount.value > 0)
+const hasPendingFailedWords = computed(() => pendingFailedCount.value > 0)
 const isCustomImportResult = computed(() => importSummary.value?.importMode === 'custom')
 const officialCount = computed(() => {
-  if (!importSummary.value || !isWord.value) return 0
+  if (!importSummary.value) return 0
   if (importSummary.value.importMode === 'custom') return importSummary.value.officialCount ?? 0
   return importSummary.value.officialCount ?? importSummary.value.successCount ?? 0
 })
@@ -178,7 +177,7 @@ function restoreFromRoute() {
       router.replace({
         query: {
           ...route.query,
-          type: importType.value,
+          type: 'word',
           step: '2',
           targetId: targetId || undefined,
         },
@@ -216,9 +215,9 @@ function handleDraftSubmit(dict?: Dict) {
   if (!dict) return
   pendingDict.value = getDefaultDict({
     ...dict,
-    id: dict.id || `pending-${importType.value}-${nanoid(8)}`,
+    id: dict.id || `pending-word-${nanoid(8)}`,
     custom: true,
-    type: isWord.value ? DictType.word : DictType.article,
+    type: DictType.word,
   })
   selectedDict.value = null
   showCreateForm.value = false
@@ -227,7 +226,7 @@ function handleDraftSubmit(dict?: Dict) {
 function goStep2() {
   if (!currentTarget.value) return Toast.warning('请先选择或创建一个' + targetLabel.value)
   step.value = 2
-  router.replace({ query: { ...route.query, type: importType.value, step: '2' } })
+  router.replace({ query: { ...route.query, type: 'word', step: '2' } })
 }
 
 function upsertTarget(dict: Dict) {
@@ -254,10 +253,10 @@ async function persistTarget() {
     ...target,
     id: '',
     custom: true,
-    type: isWord.value ? DictType.word : DictType.article,
+    type: DictType.word,
   })
 
-  dict.id = `custom-${importType.value}-${nanoid(8)}`
+  dict.id = `custom-word-${nanoid(8)}`
 
   return upsertTarget(dict)
 }
@@ -568,16 +567,16 @@ function mergeCustomWords(target: Dict, customWords: Word[]): { next: Dict; summ
 <template>
   <BasePage>
     <div class="card import-page w-full">
-      <Header :title="`${'导入'}${contentLabel}`" />
+      <Header :title="'导入单词'" />
       <div class="stepper" aria-label="导入步骤">
         <div class="step-item" :class="{ active: step >= 1 }">
           <span>1</span>
-          <strong>{{ '选择' }}{{ targetLabel }}</strong>
+          <strong>{{ '选择词典' }}</strong>
         </div>
         <div class="step-rail" :class="{ active: step >= 2 }" />
         <div class="step-item" :class="{ active: step >= 2 }">
           <span>2</span>
-          <strong>{{ '导入' }}{{ contentLabel }}</strong>
+          <strong>{{ '导入单词' }}</strong>
         </div>
         <div class="step-rail" :class="{ active: step >= 3 }" />
         <div class="step-item" :class="{ active: step >= 3 }">
@@ -591,18 +590,18 @@ function mergeCustomWords(target: Dict, customWords: Word[]): { next: Dict; summ
           <div class="section-heading">
             <div class="section-title">{{ '选择导入位置' }}</div>
             <BaseButton v-if="!showCreateForm" type="info" @click="showCreateForm = true">
-              {{ '新建' }}{{ targetLabel }}
+              {{ '新建词典' }}
             </BaseButton>
           </div>
 
           <ul class="rule-list">
             <li>
               <IconFluentCheckmarkCircle20Regular />
-              {{ '仅可导入内置' }}{{ targetLabel }}、{{ '自定义' }}{{ targetLabel }}
+              {{ '仅可导入内置词典、自定义词典' }}
             </li>
             <li>
               <IconFluentCheckmarkCircle20Regular />
-              {{ '官方' }}{{ targetLabel }}{{ '不可直接导入，您可创建副本后再导入' }}
+              {{ '官方词典不可直接导入，您可创建副本后再导入' }}
             </li>
           </ul>
 
@@ -612,7 +611,6 @@ function mergeCustomWords(target: Dict, customWords: Word[]): { next: Dict; summ
           >
             <EditBook
               :is-add="true"
-              :is-book="!isWord"
               submit-mode="draft"
               fluid
               @submit="handleDraftSubmit"
@@ -620,14 +618,14 @@ function mergeCustomWords(target: Dict, customWords: Word[]): { next: Dict; summ
             />
           </div>
 
-          <div class="section-title">{{ targetLabel }}{{ '列表' }}</div>
+          <div class="section-title">{{ '词典列表' }}</div>
           <div v-if="availableDicts.length" class="flex gap-4 flex-wrap">
             <Book
               v-for="dict in availableDicts"
               :key="dict.id"
               :is-add="false"
               :item="dict"
-              :quantifier="isWord ? '单词' : '篇'"
+              :quantifier="'单词'"
               :show-progress="false"
               :selected="currentTarget?.id === dict.id"
               @click="selectTarget(dict)"
@@ -635,17 +633,17 @@ function mergeCustomWords(target: Dict, customWords: Word[]): { next: Dict; summ
           </div>
           <div v-else class="empty-state">
             <IconFluentBook20Regular />
-            <strong>{{ '还没有可导入的' }}{{ targetLabel }}</strong>
-            <span>{{ '新建一个' }}{{ targetLabel }}{{ '后继续。' }}</span>
+            <strong>{{ '还没有可导入的词典' }}</strong>
+            <span>{{ '新建一个词典后继续。' }}</span>
           </div>
 
           <template v-if="pendingDict">
-            <div class="section-title">{{ '新建待导入' }}{{ targetLabel }}</div>
+            <div class="section-title">{{ '新建待导入词典' }}</div>
             <div class="flex gap-4 flex-wrap">
               <Book
                 :is-add="false"
                 :item="pendingDict"
-                :quantifier="isWord ? '词' : '篇'"
+                :quantifier="'词'"
                 :show-progress="false"
                 :selected="true"
               />
@@ -654,7 +652,7 @@ function mergeCustomWords(target: Dict, customWords: Word[]): { next: Dict; summ
 
           <div class="actions-row">
             <BaseButton type="primary" size="large" :disabled="!currentTarget" @click="goStep2">
-              {{ '下一步：导入' }}{{ contentLabel }}
+              {{ '下一步：导入单词' }}
             </BaseButton>
           </div>
         </section>
@@ -673,27 +671,27 @@ function mergeCustomWords(target: Dict, customWords: Word[]): { next: Dict; summ
               </div>
               <div
                 class="official-upload-block"
-                :class="{ 'import-block--disabled': isWord && officialUploadDisabled }"
+                :class="{ 'import-block--disabled': officialUploadDisabled }"
               >
-                <div class="my-2">{{ '支持导入' }} {{ isWord ? '.txt / .json / .xlsx' : '.json / .xlsx' }} {{ '格式文件' }}</div>
+                <div class="my-2">{{ '支持导入' }} .txt / .json / .xlsx {{ '格式文件' }}</div>
                 <div class="my-2 font-bold text-red">{{ '下载模板文件，按照固定格式填写后上传' }}</div>
                 <div class="my-2 font-bold text-red">{{ '暂不支持导入 PDF 文件，您可让 AI 帮您制作导入所需格式的文件' }}</div>
                 <div class="flex gap-3 flex-col mb-4">
-                  <div v-if="isWord">
-                    <a href="#" @click.prevent="downloadWordTemplate(`import-${importType}-template.txt`)">{{ '下载' }} txt {{ '模板' }}</a>
+                  <div>
+                    <a href="#" @click.prevent="downloadWordTemplate(`import-word-template.txt`)">{{ '下载' }} txt {{ '模板' }}</a>
                   </div>
                   <div>
-                    <a href="#" @click.prevent="downloadWordTemplate(`import-${importType}-template.json`)">{{ '下载' }} json {{ '模板' }}</a>
+                    <a href="#" @click.prevent="downloadWordTemplate(`import-word-template.json`)">{{ '下载' }} json {{ '模板' }}</a>
                   </div>
                   <div>
-                    <a href="#" @click.prevent="downloadWordTemplate(`import-${importType}-template.xlsx`)">{{ '下载' }} xlsx {{ '模板' }}</a>
+                    <a href="#" @click.prevent="downloadWordTemplate(`import-word-template.xlsx`)">{{ '下载' }} xlsx {{ '模板' }}</a>
                   </div>
                 </div>
                 <div class="flex items-center gap-3 flex-wrap">
                   <UploadButton
-                    :accept="isWord ? '.txt,.json,.xlsx,.xls' : '.json,.xlsx,.xls'"
+                    accept=".txt,.json,.xlsx,.xls"
                     :loading="uploading"
-                    :disabled="isWord && officialUploadDisabled"
+                    :disabled="officialUploadDisabled"
                     @change="selectFile"
                   >
                     选择文件
@@ -702,35 +700,33 @@ function mergeCustomWords(target: Dict, customWords: Word[]): { next: Dict; summ
                 </div>
               </div>
 
-              <template v-if="isWord">
-                <div class="custom-import-panel" :class="{ 'import-block--disabled': customUploadDisabled }">
-                  <div class="text-lg mt-2">{{ '导入自定义单词' }}</div>
-                  <div class="my-2 color-gray text-sm">
-                    {{ '下载模板，填写翻译、音标、例句等字段后上传' }}
-                  </div>
-                  <div class="flex gap-3 flex-col mb-4">
-                    <div>
-                      <a href="#" @click.prevent="downloadWordTemplate(CUSTOM_WORD_TEMPLATE_FILE)">下载 xlsx 模板</a>
-                    </div>
-                  </div>
-                  <div class="flex items-center gap-3 flex-wrap">
-                    <UploadButton
-                      accept=".xlsx,.xls"
-                      :loading="importingCustom"
-                      :disabled="customUploadDisabled"
-                      @change="selectCustomFile"
-                    >
-                      选择文件
-                    </UploadButton>
-                    <span class="color-gray text-sm" v-if="selectedCustomFileName">{{ selectedCustomFileName }}</span>
+              <div class="custom-import-panel" :class="{ 'import-block--disabled': customUploadDisabled }">
+                <div class="text-lg mt-2">{{ '导入自定义单词' }}</div>
+                <div class="my-2 color-gray text-sm">
+                  {{ '下载模板，填写翻译、音标、例句等字段后上传' }}
+                </div>
+                <div class="flex gap-3 flex-col mb-4">
+                  <div>
+                    <a href="#" @click.prevent="downloadWordTemplate(CUSTOM_WORD_TEMPLATE_FILE)">下载 xlsx 模板</a>
                   </div>
                 </div>
-              </template>
+                <div class="flex items-center gap-3 flex-wrap">
+                  <UploadButton
+                    accept=".xlsx,.xls"
+                    :loading="importingCustom"
+                    :disabled="customUploadDisabled"
+                    @change="selectCustomFile"
+                  >
+                    选择文件
+                  </UploadButton>
+                  <span class="color-gray text-sm" v-if="selectedCustomFileName">{{ selectedCustomFileName }}</span>
+                </div>
+              </div>
             </div>
 
             <span>{{ '或' }}</span>
-            <!-- 右列：词典=手动输入，书籍=文章编辑 -->
-            <div class="method-panel" v-if="isWord" :class="{ 'method-panel--disabled': manualInputDisabled }">
+            <!-- 右列：手动输入 -->
+            <div class="method-panel" :class="{ 'method-panel--disabled': manualInputDisabled }">
               <div class="method-title">
                 <IconFluentTextAlignLeft16Regular />
                 <span>{{ '手动输入' }}</span>
@@ -746,24 +742,11 @@ function mergeCustomWords(target: Dict, customWords: Word[]): { next: Dict; summ
                 <span>{{ '已输入' }} {{ manualWords.length }} / 5000 {{ '个单词' }}</span>
               </div>
             </div>
-            <div class="method-panel" v-else>
-              <div class="method-title">
-                <IconFluentDocument20Regular />
-                <span>{{ '手动输入文章' }}</span>
-              </div>
-              <p>{{ '进入文章编辑页面，可以连续新增多篇文章。' }}</p>
-              <div class="text-right">
-                <BaseButton type="primary" size="large" :loading="importing" @click="goManualArticleEdit">
-                  进入文章编辑
-                </BaseButton>
-              </div>
-            </div>
           </div>
 
           <div class="actions-row step2-actions">
             <BaseButton type="info" size="large" @click="step = 1">{{ '返回上一步' }}</BaseButton>
             <BaseButton
-              v-if="isWord"
               type="primary"
               size="large"
               :loading="importing || uploading || importingCustom"
@@ -771,16 +754,6 @@ function mergeCustomWords(target: Dict, customWords: Word[]): { next: Dict; summ
               @click="submitWordImport"
             >
               {{ '提交' }}
-            </BaseButton>
-            <BaseButton
-              v-else
-              type="primary"
-              size="large"
-              :loading="uploading"
-              :disabled="!selectedFile"
-              @click="importSelectedFile"
-            >
-              提交
             </BaseButton>
           </div>
         </section>
@@ -796,15 +769,14 @@ function mergeCustomWords(target: Dict, customWords: Word[]): { next: Dict; summ
               <span>{{ '导入完成' }}</span>
             </div>
             <div class="ml-10">
-              <template v-if="isWord && isCustomImportResult">
+              <template v-if="isCustomImportResult">
                 <li>{{ '自定义单词 ' + customCount + ' 个（已导入到' + targetLabel + '中）' }}</li>
               </template>
-              <template v-else-if="isWord">
+              <template v-else>
                 <li>{{ '官方单词 ' + officialCount + ' 个（已导入到' + targetLabel + '中）' }}</li>
               </template>
-              <li v-else>{{ '成功 ' + importSummary.successCount + ' 篇（已导入到' + targetLabel + '中）' }}</li>
               <li v-if="importSummary.skippedCount">
-                {{ '跳过 ' + importSummary.skippedCount + ' ' + (isWord ? '个' : '篇') + '（' + targetLabel + '中已存在）' }}
+                {{ '跳过 ' + importSummary.skippedCount + ' 个（' + targetLabel + '中已存在）' }}
               </li>
               <li v-if="hasPendingFailedWords">
                 <div>{{ pendingFailedCount + ' 个未收录（尚未导入）' }}</div>
@@ -817,21 +789,11 @@ function mergeCustomWords(target: Dict, customWords: Word[]): { next: Dict; summ
                   </li>
                 </ul>
               </li>
-              <li v-else-if="failedCount && !isWord">{{ failedCount + ' 个失败（原因：缺少 title 或 text 必填字段）' }}</li>
             </div>
           </div>
 
           <div v-if="hasPendingFailedWords" class="result-panel">
             <WordFailedTable :rows="importSummary.pendingFailedWords!" @update:rows="onPendingFailedWordsUpdate" />
-          </div>
-
-          <div v-else-if="failedCount && !isWord" class="result-panel">
-            <div class="section-title text-base">{{ '失败项' }}</div>
-            <ul class="result-list">
-              <li v-for="(item, index) in importSummary.failedItems" :key="`${item}-${index}`">
-                <span>{{ item }}</span>
-              </li>
-            </ul>
           </div>
 
           <div class="actions-row step2-actions">
@@ -850,9 +812,6 @@ function mergeCustomWords(target: Dict, customWords: Word[]): { next: Dict; summ
                 </BaseButton>
               </template>
               <template v-else>
-                <BaseButton v-if="!isWord && failedCount" type="info" size="large" @click="downloadFailedTxt">
-                  下载失败列表
-                </BaseButton>
                 <BaseButton type="primary" size="large" @click="goToDetail">{{ '查看详情' }}</BaseButton>
               </template>
             </div>

@@ -5,7 +5,7 @@ import WordItem from "./WordItem.vue";
 import { defineAsyncComponent } from "vue";
 import { useRuntimeStore } from "../../stores/runtime.ts";
 
-const Dialog = defineAsyncComponent(() => import('@typewords/base/Dialog'))
+const Dialog = defineAsyncComponent(() => import('@english-learner/base/Dialog'))
 
 const model = defineModel()
 const runtimeStore = useRuntimeStore()

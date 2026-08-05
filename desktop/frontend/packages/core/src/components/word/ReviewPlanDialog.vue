@@ -2,7 +2,7 @@
 // 复习计划:根据 FSRS 记忆曲线(due 时间)展示未来 7 天每天待复习卡片,
 // 支持展开查看当天单词卡片、提前复习未来某天的内容;复习落卡后记忆曲线自动重新安排
 import { computed, ref } from 'vue'
-import { BaseButton, Dialog, Toast, VolumeIcon } from '@typewords/base'
+import { BaseButton, Dialog, Toast, VolumeIcon } from '@english-learner/base'
 import { useBaseStore } from '../../stores/base.ts'
 import { shuffle, useNav } from '../../utils'
 import { flushStatToStore, usePracticeWordPersistence } from '../../composables/usePracticePersistence'

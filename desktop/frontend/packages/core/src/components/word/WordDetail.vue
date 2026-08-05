@@ -7,6 +7,7 @@ import { useSettingStore } from '../../stores/setting.ts'
 import { useWordOptions } from '../../hooks/dict.ts'
 import { parseInflections } from '../../utils/inflections.ts'
 import { simplifyTransCn } from '../../utils'
+import { buildTransSpeechText } from '../../utils/transSpeech'
 import { VolumeIcon } from '@english-learner/base'
 
 const settingStore = useSettingStore()
@@ -21,13 +22,9 @@ function displayCn(cn: string) {
   return settingStore.showDetailedTrans ? cn : simplifyTransCn(cn)
 }
 
-/** 中文翻译朗读:拼接全部释义,微软 Edge TTS 在线合成 */
+/** 中文翻译朗读:拼接全部释义,微软 Edge TTS 在线合成(与练习页/预加载共用同一拼接,缓存 key 一致) */
 function playTranslationAudio() {
-  const zh = props.word.trans
-    ?.map(t => displayCn(t.cn))
-    .filter(Boolean)
-    // 顿号连接多释义,朗读更连贯(与 useWordPracticeAudio/preloadTts 一致,缓存 key 依赖它)
-    .join('、')
+  const zh = buildTransSpeechText(props.word.trans, settingStore.showDetailedTrans, settingStore.limitTransSpeech)
   if (!zh) return
   playEdgeTts(zh, {
     volume: settingStore.wordSoundVolume / 100,

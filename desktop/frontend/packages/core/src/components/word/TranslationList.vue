@@ -4,6 +4,7 @@ import { nextTick, onMounted, ref, watch } from 'vue'
 import { playEdgeTts } from '../../hooks/sound.ts'
 import { useSettingStore } from '../../stores/setting.ts'
 import { simplifyTransCn } from '../../utils'
+import { buildTransSpeechText } from '../../utils/transSpeech'
 import { VolumeIcon } from '@english-learner/base'
 
 const props = withDefaults(
@@ -117,13 +118,9 @@ watch(
 /** 有中文释义才显示朗读按钮(简化后为空的不算) */
 const hasTrans = $computed(() => props.word.trans?.some(t => !!displayCn(t.cn)) ?? false)
 
-/** 朗读中文翻译:拼接全部释义,微软 Edge TTS 在线合成(与显示同一份文本,缓存 key 一致) */
+/** 朗读中文翻译:拼接全部释义,微软 Edge TTS 在线合成(与显示/预加载共用同一拼接,缓存 key 一致) */
 function playTranslationAudio() {
-  const zh = props.word.trans
-    ?.map(t => displayCn(t.cn))
-    .filter(Boolean)
-    // 顿号连接多释义,朗读更连贯(与 useWordPracticeAudio/preloadTts 一致,缓存 key 依赖它)
-    .join('、')
+  const zh = buildTransSpeechText(props.word.trans, settingStore.showDetailedTrans, settingStore.limitTransSpeech)
   if (!zh) return
   playEdgeTts(zh, {
     volume: settingStore.wordSoundVolume / 100,

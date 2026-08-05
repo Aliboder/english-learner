@@ -20,6 +20,16 @@ export const RELEASE_NOTES: ReleaseVersion[] = [
   {
     version: APP_VERSION.version,
     date: '2026-08-06',
+    title: '精简翻译朗读',
+    summary: '翻译朗读优化:可截断长词性释义、朗读带词性标签',
+    features: [
+      { type: 'new', title: '精简翻译朗读开关', desc: '设置-声音-发音朗读:开启后每个词性最多朗读前 3 个释义,读完转下一词性,快速了解词义分布;默认关闭朗读全部' },
+      { type: 'improve', title: '朗读带词性', desc: '翻译朗读按词性分组并读出词性名(如「形容词:边远的、偏僻的、遥远的;名词:遥控装置、遥控器」),精简/完整模式均生效' },
+    ],
+  },
+  {
+    version: 5,
+    date: '2026-08-06',
     title: '设置整理与按键音升级',
     summary: '设置界面全面重构、机械键盘轴体按键音、查词排序优化',
     features: [

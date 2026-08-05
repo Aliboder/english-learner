@@ -1,7 +1,7 @@
 import type { Word } from '../types'
 import { del, get, set } from 'idb-keyval'
-import { simplifyTransCn } from '../utils'
 import { useSettingStore } from '../stores/setting'
+import { buildTransSpeechText } from '../utils/transSpeech'
 
 /**
  * 朗读缓存(预加载 + 播放即缓存 + 跨会话持久化):
@@ -158,13 +158,9 @@ async function prefetchEdgeTts(text: string, voice: string, speed: number) {
 /** 预合成中文翻译(Edge TTS 在线 → data URL 缓存) */
 async function prefetchTransAudio(word: Word, voice: string, speed: number) {
   if (!word?.word) return
-  // 与播放侧一致:关闭「显示详细翻译」时预加载也合成简化文本(缓存 key 一致)
-  const showDetailed = useSettingStore().showDetailedTrans
-  const zh = word.trans
-    ?.map(t => (showDetailed ? t.cn : simplifyTransCn(t.cn)))
-    .filter(Boolean)
-    // 顿号连接(与 useWordPracticeAudio/WordDetail/TranslationList 一致,缓存 key 依赖它)
-    .join('、')
+  // 与播放侧一致:显示详细翻译/精简朗读 开关都在同一个拼接函数里(缓存 key 一致)
+  const store = useSettingStore()
+  const zh = buildTransSpeechText(word.trans, store.showDetailedTrans, store.limitTransSpeech)
   if (zh) await prefetchEdgeTts(zh, voice, speed)
 }
 
@@ -219,8 +215,8 @@ export function schedulePrefetch(
   for (const w of targets) {
     if (!w?.word) continue
     if (!wordAudioCache.has(w.word)) tasks.push(() => prefetchWordAudio(w.word, opts.soundType))
-    const showDetailed = useSettingStore().showDetailedTrans
-    const transText = w.trans?.map(t => (showDetailed ? t.cn : simplifyTransCn(t.cn))).join('、') ?? ''
+    const store = useSettingStore()
+    const transText = buildTransSpeechText(w.trans, store.showDetailedTrans, store.limitTransSpeech)
     // has 判断同样兼容旧缓存(句号 key),命中旧缓存就不重复合成
     if (transText && !transAudioCache.has(transText) && !transAudioCache.has(transText.replace(/、/g, '。'))) {
       tasks.push(() => prefetchTransAudio(w, opts.voice, opts.speed))

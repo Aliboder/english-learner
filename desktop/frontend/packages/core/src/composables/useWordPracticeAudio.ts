@@ -2,7 +2,7 @@ import { ref, unref, type ComputedRef, type Ref } from 'vue'
 import type { Word } from '../types'
 import { playEdgeTts, usePlayWordAudio } from '../hooks/sound'
 import { useSettingStore } from '../stores/setting'
-import { simplifyTransCn } from '../utils'
+import { buildTransSpeechText } from '../utils/transSpeech'
 
 export enum WordPlayTrigger {
   NewWord = 'newWord',
@@ -57,11 +57,8 @@ export function useWordPracticeAudio({ word, volumeIconRef }: WordPracticeAudioO
   /** 单词发音结束后自动朗读中文翻译(设置-音效「自动朗读中文翻译」开启时) */
   function playTranslationAfterWord() {
     if (!settingStore.autoPlayTrans) return
-    const zh = word.value.trans
-      ?.map(t => (settingStore.showDetailedTrans ? t.cn : simplifyTransCn(t.cn)))
-      .filter(Boolean)
-      // 顿号连接多释义,朗读更连贯(句号会让 Edge TTS 停顿过长;注意与 preloadTts/WordDetail/TranslationList 保持一致,缓存 key 依赖它)
-      .join('、')
+    // 顿号连接多释义(句号会让 Edge TTS 停顿过长);与预加载/查词/词表共用同一拼接(缓存 key 一致)
+    const zh = buildTransSpeechText(word.value.trans, settingStore.showDetailedTrans, settingStore.limitTransSpeech)
     if (!zh) return
     playEdgeTts(zh, {
       volume: settingStore.wordSoundVolume / 100,

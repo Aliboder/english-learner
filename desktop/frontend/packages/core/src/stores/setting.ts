@@ -69,6 +69,7 @@ export interface SettingState {
 
   ttsVoice: string // 中文朗读音色(微软 Edge TTS 音色 ID,默认晓晓;例句朗读共用此音色)
   autoPlayTrans: boolean // 单词发音结束后自动朗读中文翻译
+  limitTransSpeech: boolean // 精简翻译朗读:每个词性最多朗读前 3 条释义(默认关 = 朗读全部)
   sentenceSoundSpeed: number // 例句朗读语速(与单词/翻译语速独立;例句朗读共用 ttsVoice 音色)
   practiceAreaWidth: number // 练习页内容区固定宽度(px,窗口窄时自动收窄)
   showDetailedTrans: boolean // 显示详细翻译(括号补充内容;关闭后翻译更简洁)
@@ -152,6 +153,7 @@ export const getDefaultSettingState = (): SettingState => ({
   showEtymologyAndRelWords: true,
   ttsVoice: 'zh-CN-XiaoxiaoNeural',
   autoPlayTrans: true,
+  limitTransSpeech: false,
   practiceAreaWidth: 870,
   practiceTopGap: 150, // 练习页内容区与窗口顶部的间距(px),设置可调(100~400)
   showDetailedTrans: false,

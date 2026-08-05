@@ -27,7 +27,7 @@ import { ref } from 'vue'
 import TranslationList from './TranslationList.vue'
 import { useOnKeyboardEventListener } from '../../hooks/event.ts'
 import { parseInflections } from '../../utils/inflections.ts'
-import { simplifyTransCn } from '../../utils'
+import { buildTransSpeechText } from '../../utils/transSpeech'
 
 const { t: $t } = useI18n()
 
@@ -620,12 +620,9 @@ function onVolumeIconClick() {
   playWord(WordPlayTrigger.Manual)
 }
 
-/** 朗读中文翻译(发音区第二个喇叭;与自动接读共用 transSoundSpeed/缓存) */
+/** 朗读中文翻译(发音区第二个喇叭;与自动接读共用 transSoundSpeed/缓存/拼接) */
 function playTranslation() {
-  const zh = props.word.trans
-    ?.map(t => (settingStore.showDetailedTrans ? t.cn : simplifyTransCn(t.cn)))
-    .filter(Boolean)
-    .join('、')
+  const zh = buildTransSpeechText(props.word.trans, settingStore.showDetailedTrans, settingStore.limitTransSpeech)
   if (!zh) return
   playEdgeTts(zh, {
     volume: settingStore.wordSoundVolume / 100,

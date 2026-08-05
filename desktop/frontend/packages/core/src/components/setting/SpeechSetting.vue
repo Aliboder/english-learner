@@ -44,6 +44,9 @@ const SPEED_ITEMS = [
     <SettingItem title="自动朗读中文翻译" desc="单词发音结束后,紧接着自动朗读中文释义(仅练习页)">
       <Switch v-model="settingStore.autoPlayTrans" />
     </SettingItem>
+    <SettingItem title="精简翻译朗读" desc="开启后朗读中文翻译时,每个词性最多朗读前 3 个释义,读完转下一词性,快速了解词义分布;关闭时朗读全部释义(默认)">
+      <Switch v-model="settingStore.limitTransSpeech" />
+    </SettingItem>
 
     <!-- 中文翻译朗读(微软 Edge TTS 在线;单词发音走在线有道) -->
     <TtsEngineSettings

@@ -89,7 +89,7 @@ export const getDefaultSettingState = (): SettingState => ({
 
   keyboardSound: true,
   keyboardSoundVolume: 100,
-  keyboardSoundFile: '笔记本键盘',
+  keyboardSoundFile: 'Alpacas',
 
   effectSound: true,
   effectSoundVolume: 100,
@@ -98,7 +98,7 @@ export const getDefaultSettingState = (): SettingState => ({
   repeatCustomCount: null,
   dictation: false,
   translate: true,
-  showNearWord: true,
+  showNearWord: false,
   ignoreCase: true,
   allowWordTip: true,
   waitTimeForChangeWord: 300,
@@ -125,7 +125,7 @@ export const getDefaultSettingState = (): SettingState => ({
   ignoreSimpleWord: false,
   wordPracticeMode: WordPracticeMode.System,
   wordPracticeType: WordPracticeType.FollowWrite,
-  autoNextWord: true,
+  autoNextWord: false,
   inputWrongClear: false,
   mobileNavCollapsed: false,
   ignoreSymbol: true,
@@ -149,11 +149,12 @@ export const getDefaultSettingState = (): SettingState => ({
 
   identifyMethod: IdentifyMethod.SelfAssessment,
   _ignoreWatch: false,
-  showEtymologyAndRelWords: false,
+  showEtymologyAndRelWords: true,
   ttsVoice: 'zh-CN-XiaoxiaoNeural',
   autoPlayTrans: true,
-  practiceAreaWidth: 640,
-  showDetailedTrans: true,
+  practiceAreaWidth: 870,
+  practiceTopGap: 150, // 练习页内容区与窗口顶部的间距(px),设置可调(100~400)
+  showDetailedTrans: false,
   wordFont: 'MiSans-Semibold',
   wordLetterSpacing: 6,
   alwaysOnTop: false,

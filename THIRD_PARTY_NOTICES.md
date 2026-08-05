@@ -17,6 +17,10 @@
 - **15 个考试词库**(CET-4/6、考研、雅思、托福、高考、新概念等):源自 TypeWords 项目及网络收集,版权不明,仅供学习研究,版权归原所有者。
 - 词库数据均为内嵌静态文件,不随本项目主张任何数据版权。
 
+## 音效
+
+- **机械键盘按键音效**(13 种轴体声音:Cherry MX、Gateron、圣熊猫、蒂芙尼、Topre 静电容等):源自 [kbsim](https://github.com/tplai/kbsim)(MIT License),经 [qwerty-learner](https://github.com/Realkai42/qwerty-learner)(GPL-3.0) 收录,文件位于 `frontend/apps/nuxt/public/sound/key-sounds/`。MIT 许可允许复制与再分发。
+
 ## 字体
 
 - **MiSans**(小米字体,10 个字重,子集化为 woff2):依据小米「MiSans 字体许可协议」免费商用授权使用。许可要点:可免费使用与随软件分发;**禁止单独出售字体文件**;修改字体需遵守原许可条款。完整条款见小米字体官网:https://hyperos.mi.com/font

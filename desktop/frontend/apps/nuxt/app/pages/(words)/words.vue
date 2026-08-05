@@ -395,13 +395,15 @@ let searchTimer: ReturnType<typeof setTimeout> | null = null
 // 已加载词库的全部单词(自建词库 + 打开过的官方词库)
 const allLoadedWords = $computed(() => store.word.bookList.flatMap(d => d.words ?? []))
 
-// 计算匹配列表:前缀优先,其次包含,最多 30 条(已加载词库优先,再补内嵌索引)
+// 计算匹配列表:精确匹配置顶 > 前缀 > 包含,组内按词长升序(短的更接近输入),最多 30 条(已加载词库优先,再补内嵌索引)
 async function refreshSuggestions(q: string) {
+  const exact: SuggestionItem[] = []
   const prefix: SuggestionItem[] = []
   const contains: SuggestionItem[] = []
   const push = (word: string, trans: string, dictFile?: string) => {
     const key = word.toLowerCase()
-    if (key.startsWith(q)) prefix.push({ word, trans, dictFile })
+    if (key === q) exact.push({ word, trans, dictFile })
+    else if (key.startsWith(q)) prefix.push({ word, trans, dictFile })
     else if (key.includes(q)) contains.push({ word, trans, dictFile })
   }
 
@@ -426,7 +428,8 @@ async function refreshSuggestions(q: string) {
     }
   }
 
-  searchSuggestions = [...prefix, ...contains].slice(0, 30)
+  const byLength = (a: SuggestionItem, b: SuggestionItem) => a.word.length - b.word.length
+  searchSuggestions = [...exact, ...prefix.sort(byLength), ...contains.sort(byLength)].slice(0, 30)
   showSuggestions = searchSuggestions.length > 0
 }
 

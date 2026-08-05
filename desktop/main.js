@@ -535,8 +535,14 @@ if (!app.requestSingleInstanceLock()) {
 
       // 用 net.fetch 读本地文件,自动带正确 MIME 类型;
       // bypassCustomProtocolHandlers 防止再次进入本处理器造成死循环
+      // 强制 no-store:构建产物每次启动都读磁盘最新版,杜绝窗口加载旧磁盘缓存
+      // (曾导致"改了没生效/样式怪"反复出现——不完整构建的旧页面被缓存复用)
       return net.fetch(pathToFileURL(filePath).toString(), {
         bypassCustomProtocolHandlers: true,
+      }).then((res) => {
+        const headers = new Headers(res.headers)
+        headers.set('Cache-Control', 'no-store')
+        return new Response(res.body, { status: res.status, headers })
       })
     })
 

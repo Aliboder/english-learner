@@ -4,6 +4,7 @@ import SettingItem from './SettingItem.vue'
 import { useSettingStore } from '../../stores/setting.ts'
 import { BaseButton, Collapse, Switch } from '@english-learner/base'
 import { useRouter } from 'vue-router'
+const props = defineProps<{ search?: string }>()
 const settingStore = useSettingStore()
 const router = useRouter()
 </script>

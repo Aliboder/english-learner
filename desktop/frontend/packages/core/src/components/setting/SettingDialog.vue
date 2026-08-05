@@ -4,6 +4,7 @@ import { BaseIcon, Close } from '@english-learner/base'
 import CommonSetting from './CommonSetting.vue'
 import WordSetting from './WordSetting.vue'
 import SoundSetting from './SoundSetting.vue'
+import SpeechSetting from './SpeechSetting.vue'
 import { useDisableEventListener } from '@english-learner/utils'
 
 const props = withDefaults(
@@ -26,9 +27,9 @@ let show = $ref(false)
 
 useDisableEventListener(() => show)
 
-/** 供外部调用:打开弹框并跳转到音效设置 tab */
+/** 供外部调用:打开弹框并跳转到声音设置 tab */
 function openSoundTab() {
-  tabIndex = 3
+  tabIndex = 2
   show = true
 }
 
@@ -100,23 +101,27 @@ function open() {
         <Close class="no-drag" @click="show = false" />
       </header>
       <div class="float-tabs">
-        <div class="tab" :class="tabIndex === 1 && 'active'" @click="tabIndex = 1">
-          <IconFluentTextUnderlineDouble20Regular width="16" />
-          <span>{{ '单词设置' }}</span>
-        </div>
         <div class="tab" :class="tabIndex === 0 && 'active'" @click="tabIndex = 0">
           <IconFluentSettings20Regular width="16" />
           <span>{{ '通用设置' }}</span>
         </div>
-        <div class="tab" :class="tabIndex === 3 && 'active'" @click="tabIndex = 3">
+        <div class="tab" :class="tabIndex === 1 && 'active'" @click="tabIndex = 1">
+          <IconFluentTextUnderlineDouble20Regular width="16" />
+          <span>{{ '练习设置' }}</span>
+        </div>
+        <div class="tab" :class="tabIndex === 2 && 'active'" @click="tabIndex = 2">
           <IconClarityVolumeUpLine width="16" />
-          <span>{{ '音效设置' }}</span>
+          <span>{{ '声音设置' }}</span>
         </div>
       </div>
       <div class="float-content">
         <CommonSetting v-if="tabIndex === 0" />
         <WordSetting v-if="tabIndex === 1" />
-        <SoundSetting v-if="tabIndex === 3" />
+        <template v-if="tabIndex === 2">
+          <SpeechSetting />
+          <div class="line my-3"></div>
+          <SoundSetting />
+        </template>
       </div>
     </div>
   </Teleport>

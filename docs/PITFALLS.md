@@ -107,3 +107,19 @@ scoped 样式 `.foo[data-v-父hash]` 需要元素带**父组件**的 data-v 属�
 **修复**:① 脚本 fix-dict-list-z.py 把 list 里已本地化的词库 url 改为 .json.z(30 处);② `_getDictDataByUrl` 加载明文 404 时自动重试 .z(兼容旧存档/旧列表里已保存的 .json url——用户本地 bookList 里收藏的词库 url 不会随新版本更新,必须靠这个回退)。
 
 **教训**:① 批量文件改名/压缩必须全链路核对引用(数据文件 → 索引 → 列表配置 → 旧存档兼容);② 做"压缩/删除明文"这类操作后,先跑词库链路冒烟(全部本地 url 可达性检查),再开窗口给用户;③ 新增词库内置的完整流程:fetch-inner-dicts.py(下载+压缩)→ fix-inner-dict-list.py(列表指向本地)→ generate-dict-index.py(重建索引)→ 删 index.json 明文 → 构建+可达性验证。
+
+## 30. 构建产物偶发不完整:scoped CSS 丢失,cssHashMatch false(2026-08-06)
+
+**现象**:改完 TypeWord.vue(例句/信息区块卡片化)构建后,运行时组件带旧 scopeId 而 css 里没有对应规则,`debug-search` 报 `cssHashMatch: false`;同时页面"改了没生效"(卡片样式不显示)。用户反馈"不是卡片啊"。
+
+**根因**:某次 `npm run build:web` 在**项目根目录**(未 cd 到 desktop)静默失败(npm ENOENT),输出被 `grep -E "ERROR|✗"` 过滤吞掉(小写 error 不匹配大写 ERROR),误以为成功;随后一次构建产物不完整(vite 构建中途异常,部分组件的 scoped CSS 未提取进 css 文件,js 与 css 的 scopeId 分叉),frontend/dist 混合了新旧产物。
+
+**修复**:完整重跑 `npm run build:web`(确认输出 `✔ Client built` + `复制完成`)→ 清 `%TEMP%/english-learner-debug-search` 缓存 → 重跑 `debug-search` 确认 `cssHashMatch: true`。
+
+**防再犯**:
+1. 构建命令必须显式 `cd /d/.../desktop &&`(CWD 不跨 Bash 调用保持)
+2. 构建后检查输出不要用吞错误的正则(至少看 tail 完整段 + `exit=$?` 用管道最后一个命令的退出码判断会失真,应检查 `$PIPESTATUS`)
+3. `cssHashMatch: false` 是"改了没生效"的高危信号,必须修复到 true 才能继续/打包
+4. 产物验证(grep dist 里新 class/新文案)能发现构建未生效
+4. 缓存放大器:构建偶发问题 + Electron 磁盘缓存复用旧产物 = "反复出现"的放大机制。2026-08-06 已根治:main.js 的 app:// 协议响应强制 `Cache-Control: no-store`(每次启动读磁盘最新版);开测试窗口前清 `%APPDATA%/EnglishLearnerDev/Cache` 等目录作双保险(见 WORKFLOW.md)。
+5. 根因排查(2026-08-06,连续构建实验 + 系统检查):连续 3 次构建全部正常 → 排除必然性问题;磁盘充足(289G)、Defender 实时保护已关闭、cleanDist 每次全清 .nuxt/dist、无 vite 预构建缓存残留。**最大嫌疑:内存压力**(16GB 内存构建时仅剩 ~4.4GB 空闲,构建期间多进程挤压 vite worker,偶发部分组件 scoped 编译丢失)。已自动化兜底:`desktop/scripts/build-check.sh`(构建 → cssHashMatch 验证 → 失败自动重构建,最多 3 次),构建通过 = 产物可用;建议构建时关闭多余程序/electron 窗口。

@@ -4,7 +4,7 @@ import type { SettingState } from '../stores/setting'
 
 type VolumeKey = 'wordSoundVolume' | 'keyboardSoundVolume' | 'effectSoundVolume'
 
-type SpeedKey = 'wordSoundSpeed' | 'transSoundSpeed'
+type SpeedKey = 'wordSoundSpeed' | 'transSoundSpeed' | 'sentenceSoundSpeed'
 
 export const SOUND_VOLUME_ITEMS: { key: VolumeKey; labelKey: string }[] = [
   { key: 'wordSoundVolume', labelKey: 'word_pronunciation' },
@@ -59,9 +59,22 @@ function createMasterControl<K extends keyof SettingState>(keys: K[]) {
   }
 }
 
-export function useSoundMasterSettings() {
-  const volume = createMasterControl(SOUND_VOLUME_ITEMS.map(item => item.key))
-  const speed = createMasterControl(SOUND_SPEED_ITEMS.map(item => item.key))
+/** 声音设置:总音量 = 单词发音 + 按键音量 + 效果音量统一;总倍速 = 单词发音 + 翻译朗读 + 例句朗读统一 */
+export function useSpeechSoundSettings() {
+  return useSoundMasterSettings(
+    ['wordSoundVolume', 'keyboardSoundVolume', 'effectSoundVolume'],
+    ['wordSoundSpeed', 'transSoundSpeed', 'sentenceSoundSpeed']
+  )
+}
+
+/** 音效:音量=按键音+效果音统一,无倍速 */
+export function useEffectSoundSettings() {
+  return useSoundMasterSettings(['keyboardSoundVolume', 'effectSoundVolume'], [])
+}
+
+export function useSoundMasterSettings(volumeKeys: VolumeKey[], speedKeys: SpeedKey[]) {
+  const volume = createMasterControl(volumeKeys)
+  const speed = speedKeys.length ? createMasterControl(speedKeys) : null
 
   return {
     volumeExpanded: volume.expanded,
@@ -69,10 +82,10 @@ export function useSoundMasterSettings() {
     volumeShowDetail: volume.showDetail,
     volumeMaster: volume.master,
     volumeToggleExpanded: volume.toggleExpanded,
-    speedExpanded: speed.expanded,
-    speedIsUnified: speed.isUnified,
-    speedShowDetail: speed.showDetail,
-    speedMaster: speed.master,
-    speedToggleExpanded: speed.toggleExpanded,
+    speedExpanded: speed?.expanded ?? null,
+    speedIsUnified: speed?.isUnified ?? null,
+    speedShowDetail: speed?.showDetail ?? null,
+    speedMaster: speed?.master ?? null,
+    speedToggleExpanded: speed?.toggleExpanded ?? null,
   }
 }

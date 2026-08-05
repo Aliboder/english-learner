@@ -57,7 +57,8 @@ app.whenReady().then(() => {
   const win = new BrowserWindow({
     width: 1280,
     height: 860,
-    webPreferences: { contextIsolation: true, nodeIntegration: false },
+    show: false, // 测试窗口不可见,避免打扰用户(2026-08-06)
+    webPreferences: { contextIsolation: true, nodeIntegration: false, backgroundThrottling: false },
   })
   win.loadURL('app://bundle/words')
 

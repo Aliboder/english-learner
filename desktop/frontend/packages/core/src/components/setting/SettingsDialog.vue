@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineAsyncComponent, nextTick, ref, watch } from 'vue'
+import { defineAsyncComponent, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { getDefaultSettingState, useSettingStore } from '../../stores/setting'
 import { getShortcutKey, useEventListener } from '../../hooks/event'
 import {
@@ -9,7 +9,7 @@ import {
   isEmpty,
   loadJsLib,
 } from '../../utils'
-import { BaseButton, Collapse, PopConfirm, Switch, Toast, UploadButton } from '@english-learner/base'
+import { BaseButton, Close, Collapse, PopConfirm, Switch, Toast, UploadButton } from '@english-learner/base'
 import { getDefaultBaseState, useBaseStore } from '../../stores/base'
 import {
   APP_NAME,
@@ -28,6 +28,7 @@ import CommonSetting from './CommonSetting.vue'
 import FsrsSetting from './FsrsSetting.vue'
 import WordSetting from './WordSetting.vue'
 import SoundSetting from './SoundSetting.vue'
+import SpeechSetting from './SpeechSetting.vue'
 import { PRACTICE_ARTICLE_CACHE, PRACTICE_WORD_CACHE } from '../../utils/cache'
 import { useDataSyncPersistence } from '../../composables/useDataSyncPersistence'
 import SettingItem from './SettingItem.vue'
@@ -59,6 +60,56 @@ const settingStore = useSettingStore()
 const runtimeStore = useRuntimeStore()
 const store = useBaseStore()
 const dataSyncPersistence = useDataSyncPersistence()
+
+// ---- 可拖拽浮窗:标题栏拖拽,位置记忆到 localStorage ----
+function loadPos() {
+  try {
+    return JSON.parse(localStorage.getItem('main-setting-pos') || '') || null
+  } catch {
+    return null
+  }
+}
+
+// 默认位置:窗口中央偏上
+function defaultPos() {
+  return { x: Math.max(16, Math.round((window.innerWidth - 1080) / 2)), y: Math.max(16, Math.round((window.innerHeight - 720) / 2 - 40)) }
+}
+
+let pos = $ref({ x: 0, y: 0 })
+let dragging = false
+let dragOffset = { x: 0, y: 0 }
+
+onMounted(() => {
+  pos = loadPos() || defaultPos()
+})
+
+function startDrag(e: PointerEvent) {
+  // 交互控件不触发拖拽
+  if ((e.target as HTMLElement).closest('button, input, .no-drag, .slider')) return
+  dragging = true
+  dragOffset.x = e.clientX - pos.x
+  dragOffset.y = e.clientY - pos.y
+  window.addEventListener('pointermove', onDragMove)
+  window.addEventListener('pointerup', endDrag)
+}
+
+function onDragMove(e: PointerEvent) {
+  if (!dragging) return
+  pos.x = Math.max(0, Math.min(e.clientX - dragOffset.x, window.innerWidth - 320))
+  pos.y = Math.max(0, Math.min(e.clientY - dragOffset.y, window.innerHeight - 120))
+}
+
+function endDrag() {
+  dragging = false
+  window.removeEventListener('pointermove', onDragMove)
+  window.removeEventListener('pointerup', endDrag)
+  localStorage.setItem('main-setting-pos', JSON.stringify(pos))
+}
+
+onUnmounted(() => {
+  window.removeEventListener('pointermove', onDragMove)
+  window.removeEventListener('pointerup', endDrag)
+})
 
 let editShortcutKey = $ref('')
 
@@ -378,8 +429,14 @@ async function copyLog() {
 </script>
 
 <template>
-  <Dialog v-model="show" padding title="设置" :width="'min(92vw, 1080px)'" :height="'min(88vh, 720px)'">
-    <div class="setting text-md flex flex-col" style="height: 100%">
+  <!-- 可拖拽浮窗:标题栏拖拽,位置记忆 -->
+  <Teleport to="body">
+    <div v-if="show" class="main-setting-float" :style="{ left: pos.x + 'px', top: pos.y + 'px' }">
+      <header class="float-header" @pointerdown="startDrag">
+        <span>{{ '设置' }}</span>
+        <Close class="no-drag" @click="show = false" />
+      </header>
+      <div class="setting text-md flex flex-col" style="flex: 1; min-height: 0">
       <div class="flex flex-1 overflow-hidden gap-4">
         <div class="left">
           <div class="tabs">
@@ -388,16 +445,16 @@ async function copyLog() {
               <span>{{ '通用设置' }}</span>
             </div>
             <div class="tab" :class="tabIndex === 1 && 'active'" @click="tabIndex = 1">
-              <IconFluentBot20Regular />
-              <span>{{ '遗忘曲线设置' }}</span>
+              <IconFluentTextUnderlineDouble20Regular />
+              <span>{{ '练习设置' }}</span>
             </div>
             <div class="tab" :class="tabIndex === 2 && 'active'" @click="tabIndex = 2">
-              <IconFluentTextUnderlineDouble20Regular />
-              <span>{{ '单词设置' }}</span>
+              <IconClarityVolumeUpLine />
+              <span>{{ '声音设置' }}</span>
             </div>
             <div class="tab" :class="tabIndex === 3 && 'active'" @click="tabIndex = 3">
-              <IconClarityVolumeUpLine />
-              <span>{{ '音效设置' }}</span>
+              <IconFluentBot20Regular />
+              <span>{{ '记忆曲线' }}</span>
             </div>
             <div class="tab" :class="tabIndex === 4 && 'active'" @click="tabIndex = 4">
               <IconFluentDatabasePerson20Regular />
@@ -424,9 +481,13 @@ async function copyLog() {
         <div class="col-line"></div>
         <div class="flex-1 overflow-y-auto overflow-x-hidden pr-4 content">
           <CommonSetting v-if="tabIndex === 0" />
-          <FsrsSetting v-if="tabIndex === 1" />
-          <WordSetting v-if="tabIndex === 2" />
-          <SoundSetting v-if="tabIndex === 3" />
+          <WordSetting v-if="tabIndex === 1" />
+          <div v-if="tabIndex === 2">
+            <SpeechSetting />
+            <div class="line my-3"></div>
+            <SoundSetting />
+          </div>
+          <FsrsSetting v-if="tabIndex === 3" />
 
           <div v-if="tabIndex === 4">
             <!--            退出自动备份-->
@@ -626,7 +687,8 @@ async function copyLog() {
         </div>
       </div>
     </div>
-  </Dialog>
+    </div>
+  </Teleport>
 
   <Dialog v-model="showHistoryDialog" title="历史数据">
     <div class="p-4 w-120 max-h-100 overflow-auto">
@@ -648,6 +710,36 @@ async function copyLog() {
 </template>
 
 <style scoped lang="scss">
+// 主设置:可拖拽浮窗(标题栏拖拽,位置记忆)
+.main-setting-float {
+  position: fixed;
+  z-index: 9999;
+  width: min(92vw, 1080px);
+  height: min(88vh, 720px);
+  max-width: calc(100vw - 2rem);
+  background: var(--color-second);
+  border: 1px solid var(--color-item-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card-hover);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+
+  .float-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.6rem 0.9rem;
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--color-font-1);
+    background: var(--color-third);
+    cursor: move;
+    user-select: none;
+    flex-shrink: 0;
+  }
+}
+
 .col-line {
   border-right: 2px solid var(--color-line);
 }

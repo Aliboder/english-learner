@@ -20,6 +20,19 @@ export const RELEASE_NOTES: ReleaseVersion[] = [
   {
     version: APP_VERSION.version,
     date: '2026-08-06',
+    title: '设置整理与按键音升级',
+    summary: '设置界面全面重构、机械键盘轴体按键音、查词排序优化',
+    features: [
+      { type: 'improve', title: '设置界面全面整理', desc: '9 大分类(通用/练习/声音/记忆曲线/数据管理/快捷键/更新日志/帮助/关于),内容归位,主设置窗口可拖拽' },
+      { type: 'improve', title: '声音设置重构', desc: '总音量/总倍速分项独立调节(单词发音/按键音量/效果音量,单词/翻译/例句语速),每项带试听喇叭,调节即听' },
+      { type: 'new', title: '机械键盘轴体按键音', desc: '13 种真实机械键盘音效(Cherry MX 黑/青/茶轴、圣熊猫、蒂芙尼、Topre 静电容等),默认羊驼轴' },
+      { type: 'improve', title: '默认配置优化', desc: '新用户默认显示词源与相关词,关闭详细翻译/上下词/自动切换,练习体验更聚焦' },
+      { type: 'fix', title: '查词排序优化', desc: '输入单词时最匹配的结果置顶(精确匹配 > 前缀 > 包含,组内按词长排序)' },
+    ],
+  },
+  {
+    version: 4,
+    date: '2026-08-06',
     title: '项目清理与体积优化',
     summary: '移除上游残留内容,包名统一,导入模板本地化,安装包更小',
     features: [

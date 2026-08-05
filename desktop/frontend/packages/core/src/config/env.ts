@@ -28,16 +28,25 @@ export const DICT_LIST = {
   },
 }
 
+// 按键音效:13 个机械键盘轴体声音(来自 qwerty-learner/kbsim,MIT);value=文件名(拼 URL 用),label=显示名
 export const SoundFileOptions = [
-  { value: '机械键盘', label: '机械键盘' },
-  { value: '机械键盘1', label: '机械键盘1' },
-  { value: '机械键盘2', label: '机械键盘2' },
-  { value: '老式机械键盘', label: '老式机械键盘' },
-  { value: '笔记本键盘', label: '笔记本键盘' },
+  { value: 'Alpacas', label: '羊驼轴 (Alpacas)' },
+  { value: 'Buckling Spring', label: '屈膝弹簧 (Buckling Spring)' },
+  { value: 'Cherry MX Blacks', label: 'Cherry MX 黑轴 (Blacks)' },
+  { value: 'Cherry MX Blues', label: 'Cherry MX 青轴 (Blues)' },
+  { value: 'Cherry MX Browns', label: 'Cherry MX 茶轴 (Browns)' },
+  { value: 'Gateron Black Inks', label: 'Gateron 黑透轴 (Black Inks)' },
+  { value: 'Gateron Red Inks', label: 'Gateron 红透轴 (Red Inks)' },
+  { value: 'Holy Pandas', label: '圣熊猫轴 (Holy Pandas)' },
+  { value: 'Kailh Box Navies', label: '凯华 Box 海军轴 (Box Navies)' },
+  { value: 'NovelKeys Creams', label: '奶油轴 (NovelKeys Creams)' },
+  { value: 'SKCM Blue Alps', label: 'ALPS 青轴 (SKCM Blue Alps)' },
+  { value: 'Topre', label: 'Topre 静电容 (Topre)' },
+  { value: 'Turquoise Tealios', label: '蒂芙尼轴 (Turquoise Tealios)' },
 ]
 export const APP_VERSION = {
   key: 'english-learner-app-version',
-  version: 4,
+  version: 5,
 }
 export const SAVE_DICT_KEY = {
   key: 'typing-word-dict',

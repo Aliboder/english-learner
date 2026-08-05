@@ -42,8 +42,8 @@ app.whenReady().then(async () => {
   win = new BrowserWindow({
     width: 1280,
     height: 900,
-    show: true,
-    webPreferences: { autoplayPolicy: 'no-user-gesture-required' },
+    show: false, // 测试窗口不可见,避免打扰用户(2026-08-06)
+    webPreferences: { autoplayPolicy: 'no-user-gesture-required', backgroundThrottling: false },
   })
   win.webContents.on('console-message', (event) => {
     const m = event.message || ''

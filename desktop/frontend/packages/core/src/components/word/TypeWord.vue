@@ -18,7 +18,7 @@ import ClickableEnglishText from './ClickableEnglishText.vue'
 import ClickableWord from './ClickableWord.vue'
 import WordLookupPopover from './WordLookupPopover.vue'
 import { _nextTick, last, normalizeWord, useNav } from '../../utils'
-import { BaseButton, BaseIcon, Textarea, Toast, ToastComponent, Tooltip, VolumeIcon } from '@english-learner/base'
+import { BaseButton, BaseIcon, Textarea, Toast, Tooltip, VolumeIcon } from '@english-learner/base'
 import Space from '../article/Space.vue'
 import { useI18n } from 'vue-i18n'
 import { useWordOptions } from '../../hooks/dict.ts'
@@ -343,17 +343,8 @@ async function onTyping(e: KeyboardEvent) {
         }
       }
     } else {
-      //当正确时，提醒用户按空格或「下一个」快捷键切换
-      if (right) {
-        pressNumber++
-        if (pressNumber >= 3) {
-          Toast.info(
-            nextShortcutKey === ' ' ? '请按空格键继续' : `请按空格键或「${nextShortcutKey}」切换到下一个单词`,
-            { duration: 2000 }
-          )
-          pressNumber = 0
-        }
-      } else {
+      //当正确时,切换提示已常驻显示在操作按钮上方(next-word-tip),不再弹 Toast 重复提示
+      if (!right) {
         //当错误时，按任意键重新输入
         showWordResult.value = inputLock = false
         input = wrong = ''
@@ -715,25 +706,6 @@ useEventsByWatch(
   () => isWordTest
 )
 
-const notice = $computed(() => {
-  let text =
-    settingStore.wordPracticeType === WordPracticeType.Identify
-      ? '选择后/输入后，按空格键切换下一个'
-      : settingStore.wordPracticeType === WordPracticeType.Listen
-        ? '输入完成后按空格键切换下一个'
-        : showWordResult.value
-          ? right
-            ? '按空格键切换下一个'
-            : '请按删除键重新输入'
-          : '按空格键完成输入'
-  return {
-    show: [WordPracticeType.Listen, WordPracticeType.Identify, WordPracticeType.Dictation].includes(
-      settingStore.wordPracticeType
-    ),
-    text,
-  }
-})
-
 const { isWordSimple, toggleWordSimple } = useWordOptions()
 
 const collectAnchorRef = ref<HTMLElement | null>(null)
@@ -764,7 +736,44 @@ defineExpose({
 <template>
   <div class="typing-word" ref="typingWordRef" v-if="word.word.length">
     <div class="flex flex-col items-center">
-      <div class="flex gap-1 mt-10 md:mt-30">
+      <!-- 单词操作按钮区:顶部间距常驻且可自定义(设置-练习区顶部间距);切换提示悬浮在按钮上方,不占文档流(输完出现/消失零位移) -->
+      <div class="relative" :style="{ marginTop: settingStore.practiceTopGap + 'px' }">
+        <div
+          v-if="showWordResult && !settingStore.autoNextWord"
+          class="next-word-tip absolute left-1/2 -translate-x-1/2 -top-7 whitespace-nowrap"
+        >
+          {{ '按' }} <span class="key">空格</span> {{ '切换到下一个单词' }}
+        </div>
+        <div class="flex gap-4 mb-2">
+        <BaseIcon
+          @click="emit('toggleSimple')"
+          :title="
+            (!isSimple ? '标记为已掌握' : '取消标记已掌握') +
+            `(${settingStore.shortcutKeyMap[ShortcutKey.ToggleSimple]})`
+          "
+        >
+          <IconFluentCheckmarkCircle16Regular v-if="!isSimple" />
+          <IconFluentCheckmarkCircle16Filled v-else />
+        </BaseIcon>
+        <BaseIcon @click="editNote" :title="editingNote ? '完成编辑笔记' : '编辑笔记'">
+          <IconFluentClipboardTextEdit20Regular />
+        </BaseIcon>
+        <span ref="collectAnchorRef" class="inline-flex">
+          <BaseIcon
+            class="word-collect-anchor"
+            @click="openCollectPicker"
+            :title="`${'收藏到词典'}(${settingStore.shortcutKeyMap[ShortcutKey.ToggleCollect]})`"
+          >
+            <IconFluentStarAdd16Regular />
+          </BaseIcon>
+        </span>
+        <BaseIcon @click="emit('skip')" :title="`${'跳过单词'}(${settingStore.shortcutKeyMap[ShortcutKey.Next]})`">
+          <IconFluentArrowBounce20Regular class="transform-rotate-180" />
+        </BaseIcon>
+        </div>
+      </div>
+
+      <div class="flex gap-1">
         <div
           class="phonetic"
           :class="
@@ -858,33 +867,19 @@ defineExpose({
         </div>
       </Tooltip>
 
-      <!--      单词操作按钮-->
-      <div class="mt-2 flex gap-4">
-        <BaseIcon
-          @click="emit('toggleSimple')"
-          :title="
-            (!isSimple ? '标记为已掌握' : '取消标记已掌握') +
-            `(${settingStore.shortcutKeyMap[ShortcutKey.ToggleSimple]})`
-          "
-        >
-          <IconFluentCheckmarkCircle16Regular v-if="!isSimple" />
-          <IconFluentCheckmarkCircle16Filled v-else />
-        </BaseIcon>
-        <BaseIcon @click="editNote" :title="editingNote ? '完成编辑笔记' : '编辑笔记'">
-          <IconFluentClipboardTextEdit20Regular />
-        </BaseIcon>
-        <span ref="collectAnchorRef" class="inline-flex">
-          <BaseIcon
-            class="word-collect-anchor"
-            @click="openCollectPicker"
-            :title="`${'收藏到词典'}(${settingStore.shortcutKeyMap[ShortcutKey.ToggleCollect]})`"
-          >
-            <IconFluentStarAdd16Regular />
-          </BaseIcon>
-        </span>
-        <BaseIcon @click="emit('skip')" :title="`${'跳过单词'}(${settingStore.shortcutKeyMap[ShortcutKey.Next]})`">
-          <IconFluentArrowBounce20Regular class="transform-rotate-180" />
-        </BaseIcon>
+      <!-- 翻译:紧跟单词(打字区)下方,限宽居中 —— 与 demo 布局一致 -->
+      <div
+        class="translate flex flex-col gap-2 my-3 w-full"
+        v-opacity="settingStore.translate || showWordResult || showFullWord"
+        :style="{
+          fontSize: settingStore.fontSize.wordTranslateFontSize + 'px',
+        }"
+      >
+        <TranslationList
+          :word="word"
+          :showFull="!settingStore.dictation || showWordResult || showFullWord"
+          :show-play="false"
+        />
       </div>
 
       <div class="mt-4 flex gap-2" v-if="isSelfAssessment && !showWordResult">
@@ -932,48 +927,6 @@ defineExpose({
         </div>
       </div>
 
-      <div class="center mt-3" v-if="notice.show && settingStore.showUsageTips">
-        <ToastComponent
-          :duration="0"
-          confirm
-          :shadow="false"
-          :showClose="store.sdict.statistics.length > 2"
-          :message="notice.text"
-          @close="settingStore.showUsageTips = false"
-        />
-      </div>
-
-      <!-- 手动切换提示:关闭自动切换时,输完单词提醒按空格或「下一个」快捷键切换到下一个 -->
-      <div
-        v-if="
-          showWordResult &&
-          !settingStore.autoNextWord &&
-          [WordPracticeType.FollowWrite, WordPracticeType.Spell].includes(settingStore.wordPracticeType)
-        "
-        class="next-word-tip"
-      >
-        <template v-if="nextShortcutKey === ' '">
-          {{ '按' }} <span class="key">空格</span> {{ '切换到下一个单词' }}
-        </template>
-        <template v-else>
-          {{ '按' }} <span class="key">空格</span> {{ '或' }} <span class="key">{{ nextShortcutKey }}</span>
-          {{ '切换到下一个单词' }}
-        </template>
-      </div>
-
-      <div
-        class="translate flex flex-col gap-2 my-3 w-full"
-        v-opacity="settingStore.translate || showWordResult || showFullWord"
-        :style="{
-          fontSize: settingStore.fontSize.wordTranslateFontSize + 'px',
-        }"
-      >
-        <TranslationList
-          :word="word"
-          :showFull="!settingStore.dictation || showWordResult || showFullWord"
-          :show-play="false"
-        />
-      </div>
     </div>
 
     <template v-if="editingNote || store.noteData[word.word]?.trim()">
@@ -1010,54 +963,57 @@ defineExpose({
       "
     >
       <template v-if="word?.sentences?.length">
-        <div class="line-white my-3"></div>
-        <div
-          class="sentence"
-          :class="{
-            'is-wrong': wrong && currentPracticeSentenceIndex === index,
-            'is-playing': highlightedSentenceIndex === index,
-          }"
-          v-for="(item, index) in word.sentences"
-          :key="index"
-        >
-          <div class="flex gap-space text-xl">
-            <div v-if="index !== currentPracticeSentenceIndex">
-              <ClickableEnglishText
-                :text="item.c"
-                :word="word.word"
-                :dictation="!(!settingStore.dictation || showFullWord || showWordResult)"
-              />
-            </div>
-            <div v-else>
-              <span class="input" v-if="input">{{ input }}</span>
-              <span class="wrong" v-if="wrong">{{ wrong }}</span>
-              <span class="letter">{{ displaySentence }}</span>
-            </div>
-            <!-- 例句朗读:点击喇叭播放(后台已预加载缓存,零等待;不自动播放) -->
-            <VolumeIcon :title="'朗读例句'" :simple="true" @click="playSentence(index, { highlight: true })" />
-          </div>
-          <div class="text-base anim" v-opacity="settingStore.translate || showFullWord || showWordResult">
-            {{ item.cn }}
-          </div>
-        </div>
-      </template>
-
-      <template v-if="word?.phrases?.length">
-        <div class="line-white my-3"></div>
-        <div class="flex">
-          <div class="label">{{ '短语' }}</div>
-          <div class="flex flex-col">
-            <div class="flex items-center gap-4" v-for="(item, index) in word.phrases" :key="index">
-              <div class="flex gap-space items-center">
+        <!-- 例句卡片:3 条一栏,英文一行 + 中文下一行(与 demo-9 样式一致) -->
+        <div class="sentence-card">
+          <div
+            class="sentence"
+            :class="{
+              'is-wrong': wrong && currentPracticeSentenceIndex === index,
+              'is-playing': highlightedSentenceIndex === index,
+            }"
+            v-for="(item, index) in word.sentences"
+            :key="index"
+          >
+            <div class="flex gap-space text-xl">
+              <div v-if="index !== currentPracticeSentenceIndex">
                 <ClickableEnglishText
-                  class="en"
                   :text="item.c"
                   :word="word.word"
                   :dictation="!(!settingStore.dictation || showFullWord || showWordResult)"
                 />
               </div>
-              <div class="cn anim" v-opacity="settingStore.translate || showFullWord || showWordResult">
-                {{ item.cn }}
+              <div v-else>
+                <span class="input" v-if="input">{{ input }}</span>
+                <span class="wrong" v-if="wrong">{{ wrong }}</span>
+                <span class="letter">{{ displaySentence }}</span>
+              </div>
+              <!-- 例句朗读:点击喇叭播放(后台已预加载缓存,零等待;不自动播放) -->
+              <VolumeIcon :title="'朗读例句'" :simple="true" @click="playSentence(index, { highlight: true })" />
+            </div>
+            <div class="text-base anim" v-opacity="settingStore.translate || showFullWord || showWordResult">
+              {{ item.cn }}
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <template v-if="word?.phrases?.length">
+        <div class="info-card">
+          <div class="flex">
+            <div class="label">{{ '短语' }}</div>
+            <div class="flex flex-col">
+              <div class="flex items-center gap-4" v-for="(item, index) in word.phrases" :key="index">
+                <div class="flex gap-space items-center">
+                  <ClickableEnglishText
+                    class="en"
+                    :text="item.c"
+                    :word="word.word"
+                    :dictation="!(!settingStore.dictation || showFullWord || showWordResult)"
+                  />
+                </div>
+                <div class="cn anim" v-opacity="settingStore.translate || showFullWord || showWordResult">
+                  {{ item.cn }}
+                </div>
               </div>
             </div>
           </div>
@@ -1066,21 +1022,22 @@ defineExpose({
 
       <template v-if="settingStore.translate || !settingStore.dictation">
         <template v-if="word?.synos?.length">
-          <div class="line-white my-3"></div>
-          <div class="flex">
-            <div class="label">{{ '近义词' }}</div>
-            <div class="flex flex-col gap-3">
-              <div class="flex" v-for="item in word.synos">
-                <div class="pos line-height-1.4rem!">{{ item.pos }}</div>
-                <div>
-                  <div class="cn anim" v-opacity="settingStore.translate || showFullWord || showWordResult">
-                    {{ item.cn }}
-                  </div>
-                  <div class="anim" v-opacity="!settingStore.dictation || showFullWord || showWordResult">
-                    <template v-for="(i, j) in item.ws" :key="j">
-                      <ClickableWord :word="i" />
-                      <span v-if="j !== item.ws.length - 1"> / </span>
-                    </template>
+          <div class="info-card">
+            <div class="flex">
+              <div class="label">{{ '近义词' }}</div>
+              <div class="flex flex-col gap-3">
+                <div class="flex" v-for="item in word.synos">
+                  <div class="pos line-height-1.4rem!">{{ item.pos }}</div>
+                  <div>
+                    <div class="cn anim" v-opacity="settingStore.translate || showFullWord || showWordResult">
+                      {{ item.cn }}
+                    </div>
+                    <div class="anim" v-opacity="!settingStore.dictation || showFullWord || showWordResult">
+                      <template v-for="(i, j) in item.ws" :key="j">
+                        <ClickableWord :word="i" />
+                        <span v-if="j !== item.ws.length - 1"> / </span>
+                      </template>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1097,45 +1054,49 @@ defineExpose({
         "
       >
         <template v-if="word?.etymology?.length">
-          <div class="line-white my-3"></div>
-          <div class="flex">
-            <div class="label">{{ '词源' }}</div>
-            <div class="text-base">
-              <div class="mb-2" v-for="item in word.etymology">
-                <div class="">{{ item.t }}</div>
-                <div class="">{{ item.d }}</div>
+          <div class="info-card">
+            <div class="flex">
+              <div class="label">{{ '词源' }}</div>
+              <div class="text-base">
+                <div class="mb-2" v-for="item in word.etymology">
+                  <div class="">{{ item.t }}</div>
+                  <div class="">{{ item.d }}</div>
+                </div>
               </div>
             </div>
           </div>
-          <!--        <div class="line-white my-2"></div>-->
         </template>
 
         <!-- 词形变化(ECDICT exchange 解析) -->
         <template v-if="parseInflections(word.inflections).length">
-          <div class="flex">
-            <div class="label">{{ '词形变化' }}</div>
-            <div class="flex flex-wrap gap-x-4 gap-y-1">
-              <div v-for="inf in parseInflections(word.inflections)" :key="inf.label">
-                <span class="pos">{{ inf.label }}</span>
-                <span class="en">{{ inf.value }}</span>
+          <div class="info-card">
+            <div class="flex">
+              <div class="label">{{ '词形变化' }}</div>
+              <div class="flex flex-wrap gap-x-4 gap-y-1">
+                <div v-for="inf in parseInflections(word.inflections)" :key="inf.label">
+                  <span class="pos">{{ inf.label }}</span>
+                  <span class="en">{{ inf.value }}</span>
+                </div>
               </div>
             </div>
           </div>
         </template>
 
         <template v-if="word?.relWords?.root">
-          <div class="flex">
-            <div class="label">{{ '同根词' }}</div>
-            <div class="flex flex-col gap-3">
-              <div v-if="word.relWords.root" class=" ">
-                {{ '词根' }}：<ClickableWord class="en" :word="word.relWords.root" />
-              </div>
-              <div class="flex" v-for="item in word.relWords.rels">
-                <div class="pos">{{ item.pos }}</div>
-                <div>
-                  <div class="flex items-center gap-4" v-for="itemj in item.words">
-                    <ClickableWord class="en" :word="itemj.c" />
-                    <div class="cn">{{ itemj.cn }}</div>
+          <div class="info-card">
+            <div class="flex">
+              <div class="label">{{ '同根词' }}</div>
+              <div class="flex flex-col gap-3">
+                <div v-if="word.relWords.root" class=" ">
+                  {{ '词根' }}：<ClickableWord class="en" :word="word.relWords.root" />
+                </div>
+                <div class="flex" v-for="item in word.relWords.rels">
+                  <div class="pos">{{ item.pos }}</div>
+                  <div>
+                    <div class="flex items-center gap-4" v-for="itemj in item.words">
+                      <ClickableWord class="en" :word="itemj.c" />
+                      <div class="cn">{{ itemj.cn }}</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1177,6 +1138,12 @@ defineExpose({
     font-size: 1.2rem;
   }
 
+  // 翻译区:限宽居中(长翻译换行不撑满全宽,与打字区视觉对齐)
+  .translate {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
   .phonetic {
     color: var(--color-font-1);
     font-family: var(--word-font-family);
@@ -1193,9 +1160,8 @@ defineExpose({
     animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
   }
 
-  // 手动切换提示(关闭自动切换时,输完单词显示)
+  // 手动切换提示(关闭自动切换时,输完单词显示;顶部间距由模板类控制,自身不再带 margin)
   .next-word-tip {
-    margin-top: 0.6rem;
     font-size: 0.85rem;
     color: var(--color-sub-text);
 
@@ -1253,6 +1219,31 @@ defineExpose({
 
   .pos {
     @apply min-w-10;
+  }
+
+  // 信息卡片(例句/短语/近义词/词源/词形变化/同根词):白底圆角,深浅主题适配
+  .sentence-card,
+  .info-card {
+    margin: 0.8rem 0 0.5rem;
+    background: var(--color-card-bg);
+    border: 1px solid var(--color-line);
+    border-radius: 0.6rem;
+    display: flex;
+    flex-direction: column;
+
+    .sentence {
+      margin-left: 0;
+      margin-right: 0;
+    }
+  }
+
+  .sentence-card {
+    padding: 0.5rem 0.6rem;
+  }
+
+  .info-card {
+    padding: 0.8rem 1rem;
+    gap: 0.6rem;
   }
 
   .sentence {

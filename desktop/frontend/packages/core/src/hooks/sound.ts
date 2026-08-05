@@ -53,8 +53,8 @@ export function usePlayKeyboardAudio() {
   const { play, setAudio } = useSound()
 
   watchEffect(() => {
-    if (!SoundFileOptions.find(v => v.label === settingStore.keyboardSoundFile)) {
-      settingStore.keyboardSoundFile = '机械键盘2'
+    if (!SoundFileOptions.find(v => v.value === settingStore.keyboardSoundFile)) {
+      settingStore.keyboardSoundFile = 'Alpacas'
     }
     let urlList = getAudioFileUrl(settingStore.keyboardSoundFile)
     setAudio(urlList, urlList.length === 1 ? 4 : 1)
@@ -232,14 +232,6 @@ export function usePlayAudio(url: string) {
 }
 
 export function getAudioFileUrl(name: string) {
-  if (name === '机械键盘') {
-    return [
-      `/sound/key-sounds/机械0.wav`,
-      `/sound/key-sounds/机械1.wav`,
-      `/sound/key-sounds/机械2.wav`,
-      `/sound/key-sounds/机械3.wav`,
-    ]
-  } else {
-    return [`/sound/key-sounds/${name}.wav`]
-  }
+  // 按键音效均为 mp3(机械轴体声音,来自 qwerty-learner/kbsim);文件名含空格,URL 需编码
+  return [`/sound/key-sounds/${encodeURIComponent(name)}.mp3`]
 }

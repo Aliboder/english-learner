@@ -31,10 +31,14 @@ rm -rf frontend/apps/nuxt/.nuxt frontend/apps/nuxt/node_modules/.vite frontend/n
 
 ```bash
 taskkill //IM EnglishLearner.exe //F 2>/dev/null; taskkill //IM electron.exe //F 2>/dev/null
+# 清 dev 窗口的 Electron 磁盘缓存(不动学习数据),避免窗口加载旧构建产物
+rm -rf "$APPDATA/EnglishLearnerDev/Cache" "$APPDATA/EnglishLearnerDev/CacheData" "$APPDATA/EnglishLearnerDev/Code Cache" "$APPDATA/EnglishLearnerDev/GPUCache" 2>/dev/null
 env -u ELECTRON_RUN_AS_NODE ./node_modules/electron/dist/electron.exe .   # 后台运行
 ```
 
 注意:dev 窗口与安装版数据完全隔离(见下文"环境隔离"),首次打开是空数据,需要先装载词库。
+
+> 2026-08-06 起 main.js 的 app:// 协议响应已强制 `Cache-Control: no-store`(每次读磁盘最新产物),缓存复用导致"改了没生效"已根治;上方清缓存命令仍保留作双保险。
 
 ## 二、构建与验证(铁律)
 
@@ -44,6 +48,7 @@ env -u ELECTRON_RUN_AS_NODE ./node_modules/electron/dist/electron.exe .   # 后�
    ```
    构建失败时**绝不开窗口**(可能加载旧产物)。
 2. **构建后必跑 debug-search.js** 验证 `cssHashMatch: true` + `cursor: pointer` + `wordWidth: 144px`。
+   - 推荐直接用 `bash scripts/build-check.sh`(构建 + cssHashMatch 验证 + 失败自动重构建最多 3 次,2026-08-06 起)—— 构建产物偶发不完整(内存压力相关),脚本保证"构建通过 = 产物可用"。
 3. cleanDist.js 每次构建自动删 `.nuxt` + `dist`(scoped hash 分叉已根治);仍异常时用上文的完整清缓存命令。
 4. 验证自动化分级:默认 `build:web` + debug-search;改动练习/判分/存储 → 跑 e2e-typing;改 main.js/打包配置 → 安装版冒烟;改导出/导入链路 → test-export + test-import。
 

@@ -20,9 +20,14 @@ AI_PROMPT.md
 # 上游参考副本(README 已链接上游,避免重复入库)
 TypeWords/
 YoudaoTranslator/
+qwerty-learner/
 
-# 字体原始文件(子集化 woff2 已入库;ttf 源文件 ~150MB 不入库)
-/MiSans-*.ttf
+# 字体原始文件(子集化 woff2 已入库;ttf 源文件 ~80MB 不入库)
+assets/fonts/
+
+# 宣传素材(产品海报/页面 demo/截图脚本,不入库)
+assets/
+desktop/scripts/shot-*.js
 
 # 本地临时与工具数据
 desktop/resources/tmp/

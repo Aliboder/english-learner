@@ -26,6 +26,7 @@ export const RELEASE_NOTES: ReleaseVersion[] = [
       { type: 'new', title: '例句朗读', desc: '微软 Edge TTS 朗读单词例句,点击喇叭播放不自动发声,预加载缓存点击零延迟' },
       { type: 'new', title: '自动切换开关', desc: '输完单词可自动跳转;也可关闭后停留显示完整信息,按空格或「下一个」快捷键切换' },
       { type: 'new', title: '全局字体', desc: '内置 MiSans 10 个字重,设置中一键切换,整个界面统一生效' },
+      { type: 'new', title: '词库扩展', desc: '新增中考/高考真题/人教版教材同步/巧记速记/考研926/专升本/牛津3000 等 16 个词库,内置达 33 个,全部离线可用' },
       { type: 'improve', title: '练习页细节', desc: '单词字符间距可调、设置浮窗可拖拽、窗口置顶、输完单词切换提示' },
       { type: 'improve', title: '性能与体积', desc: '打字切词提速、练习缓存恢复提速、词库压缩(安装后占用 179→72MB)' },
       { type: 'fix', title: '纯中文界面', desc: '移除多语言仅保留中文,修复翻译与进度显示问题' },

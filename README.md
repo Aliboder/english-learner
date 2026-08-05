@@ -18,8 +18,9 @@
 
 ## 安装使用
 
-- 直接下载发行版安装包(`EnglishLearner Setup x.x.x.exe`)覆盖安装,数据不丢失
-- 安装使用说明见 `desktop/release/安装使用说明.txt`
+- **下载安装包**:前往 [GitHub Releases](https://github.com/Aliboder/english-learner/releases) 或 [Gitee 发行版](https://gitee.com/Aliboder/english-learner/releases) 下载最新 `EnglishLearner Setup x.x.x.exe`(仅 Windows x64),覆盖安装数据不丢失
+- 如提示「未知发布者」,点「更多信息 → 仍要运行」即可
+- 安装使用说明随发行版附件提供
 
 ## 从源码构建
 

@@ -266,7 +266,7 @@ onMounted(async () => {
 onUnmounted(() => {
   document.removeEventListener('visibilitychange', onvisibilitychange)
   savePracticeData.cancel?.() // 取消防抖中未触发的保存,避免卸载后定时器二次写入
-  savePracticeDataIns('onUnmounted') // 保存进行中的练习状态(内部自带未开始/已结算守卫,无需判缓存)
+  savePracticeDataIns('onUnmounted').catch(e => console.error('退出时保存练习状态失败', e)) // 保存进行中的练习状态(内部自带未开始/已结算守卫,无需判缓存)
   timer && clearInterval(timer)
   watchRefList.map(v => v?.stop())
   cancelWordPracticeAudio() // 退出练习页:停止正在播放的单词/翻译语音,避免回到主页还在读
@@ -533,8 +533,15 @@ async function complete() {
       }
     }
 
-    await dataSync.saveDictState(store.$state, { pullWhenRemoteNewer: false })
-    await wordPersistence.clear()
+    try {
+      await dataSync.saveDictState(store.$state, { pullWhenRemoteNewer: false })
+      await wordPersistence.clear()
+    } catch (e) {
+      // 保存失败(磁盘满/配额):isComplete 已置 true 防重复结算,内存中的卡/进度已生成,
+      // store 的 $subscribe 防抖仍会尝试落盘;此处兜底提示,界面不卡死
+      console.error('结算数据保存失败', e)
+      Toast.error('结算数据保存失败,请检查磁盘空间后重试')
+    }
 
     let trackData = {
       funSpend: Date.now() - start,
@@ -738,10 +745,14 @@ function setWordCard(rating: number, wordStr = word.word) {
 
 async function savePracticeDataIns(where?) {
   const stages = WordPracticeModeStageMap[settingStore.wordPracticeMode]
+  // 未开始练习:首词未输入且无任何错词记录时,不保存空会话。
+  // 首词已打错(错词有记录)必须保存——否则第一个词没打完就退出,错词记录会丢
+  const noTypingProgress = Object.keys(data.wrongTimesMap).length === 0 && data.wrongWords.length === 0
   if (
     data.index === 0 &&
     statStore.stage === stages[0] &&
-    settingStore.wordPracticeType === WordPracticeType.FollowWrite
+    settingStore.wordPracticeType === WordPracticeType.FollowWrite &&
+    noTypingProgress
   ) {
     //未开始练习
     return
@@ -749,21 +760,29 @@ async function savePracticeDataIns(where?) {
   if (isComplete) return
   if (runtimeStore.globalLoading) return
   runtimeStore.globalLoading = true
-  // 若计时未暂停，将最后一条片段的 end 更新为当前时刻，确保保存内容最新
-  if (!statStore.timerPaused && statStore.segments.length > 0) {
-    statStore.segments[statStore.segments.length - 1][1] = Date.now()
+  try {
+    // 若计时未暂停，将最后一条片段的 end 更新为当前时刻，确保保存内容最新
+    if (!statStore.timerPaused && statStore.segments.length > 0) {
+      statStore.segments[statStore.segments.length - 1][1] = Date.now()
+    }
+    await wordPersistence.save({
+      taskWords,
+      practiceData: data,
+      statStoreData: statStore.$state,
+    })
+  } catch (e) {
+    // 保存失败(磁盘满/IndexedDB 配额):不卡死界面,提示用户
+    console.error('练习状态保存失败', e)
+    Toast.warning('练习状态保存失败,请检查磁盘空间')
+  } finally {
+    runtimeStore.globalLoading = false
   }
-  await wordPersistence.save({
-    taskWords,
-    practiceData: data,
-    statStoreData: statStore.$state,
-  })
-  runtimeStore.globalLoading = false
 }
 
 const savePracticeData = debounce(savePracticeDataIns, 500)
 
 function repeat() {
+  savePracticeData.cancel?.() // 先取消防抖中未触发的保存,避免旧会话缓存回灌覆盖 clear
   wordPersistence.clear()
   let temp = cloneDeep(taskWords)
   let ignoreSet = [store.allIgnoreWordsSet, store.knownWordsSet][settingStore.ignoreSimpleWord ? 0 : 1]
@@ -858,6 +877,7 @@ function toggleConciseMode() {
 }
 
 async function continueStudy() {
+  savePracticeData.cancel?.() // 先取消防抖中未触发的保存,避免旧会话缓存回灌覆盖 clear
   wordPersistence.clear()
   let temp = cloneDeep(taskWords)
   let ignoreList = [store.allIgnoreWords, store.knownWords][settingStore.ignoreSimpleWord ? 0 : 1]
@@ -893,6 +913,7 @@ async function continueStudy() {
 
 async function jumpToGroup(group: number) {
   window?.umami?.track('jumpToGroup')
+  savePracticeData.cancel?.() // 先取消防抖中未触发的保存,避免旧会话缓存回灌覆盖 clear
   wordPersistence.clear()
   store.sdict.lastLearnIndex = (group - 1) * store.sdict.perDayStudyNumber
   emitter.emit(EventKey.resetWord)

@@ -9,10 +9,26 @@ export function useSound(audioSrcList?: string[], audioFileLength?: number) {
   let audioList = ref<HTMLAudioElement[]>([])
   let audioLength = ref(1)
   let index = ref(0)
+  // 放大倍数支持(按键音):audio.volume 上限 1,无法超过原始音量,统一接入 AudioContext gain 链,
+  // play(volume, gain) 时按倍数放大;beep/correct 用默认 1 倍,音量行为不变
+  let audioCtx: AudioContext | null = null
+  let masterGain: GainNode | null = null
 
   onMounted(() => {
     if (audioSrcList) setAudio(audioSrcList, audioFileLength)
   })
+
+  function ensureCtx() {
+    if (!audioCtx) {
+      audioCtx = new AudioContext()
+      masterGain = audioCtx.createGain()
+      masterGain.gain.value = 1
+      masterGain.connect(audioCtx.destination)
+    }
+    // 无手势时创建为 suspended;打字/点击等手势内播放会自动 resume
+    if (audioCtx.state === 'suspended') audioCtx.resume().catch(() => {})
+    return audioCtx
+  }
 
   //这里同一个音频弄好几份是为了快速打字是，可同时发音
   function setAudio(audioSrcList2: string[], audioFileLength2?: number) {
@@ -20,28 +36,40 @@ export function useSound(audioSrcList?: string[], audioFileLength?: number) {
     if (import.meta.server) return
     if (audioFileLength2) audioLength.value = audioFileLength2
     audioList.value = []
-    for (let i = 0; i < audioLength.value; i++) {
-      // 桌面版音效内嵌在应用内(/sound/),走本地路径;不要拼 ENV.RESOURCE_URL(远程 CDN 会失败/离线不可用)
-      audioSrcList2.map(src => audioList.value.push(new Audio(src)))
+    try {
+      const ctx = ensureCtx()
+      for (let i = 0; i < audioLength.value; i++) {
+        // 桌面版音效内嵌在应用内(/sound/),走本地路径;不要拼 ENV.RESOURCE_URL(远程 CDN 会失败/离线不可用)
+        // createMediaElementSource 每个元素只能调用一次(每次 setAudio 都是新元素,安全)
+        audioSrcList2.map(src => {
+          const audio = new Audio(src)
+          ctx.createMediaElementSource(audio).connect(masterGain!)
+          audioList.value.push(audio)
+        })
+      }
+    } catch {
+      // AudioContext 不可用的极端环境(极少):退化为直接播放,无倍数放大
+      audioList.value = []
+      for (let i = 0; i < audioLength.value; i++) {
+        audioSrcList2.map(src => audioList.value.push(new Audio(src)))
+      }
     }
     index.value = 0
   }
 
-  function play(volume: number = 100) {
+  function play(volume: number = 100, gain: number = 1) {
     index.value++
+    const applyVolume = (el: HTMLAudioElement | undefined | null) => {
+      if (!el) return
+      el.volume = Math.min(1, volume / 100)
+      if (masterGain) masterGain.gain.value = Math.max(0, gain)
+      // 音效文件缺失/加载失败时 play() 会 reject,必须捕获,否则产生 Uncaught 日志(见 NotSupportedError)
+      el.play().catch(() => {})
+    }
     if (audioList.value.length > 1 && audioList.value.length !== audioLength.value) {
-      let htmlAudioElement = audioList.value[index.value % audioList.value.length]
-      if (htmlAudioElement) {
-        htmlAudioElement.volume = volume / 100
-        // 音效文件缺失/加载失败时 play() 会 reject,必须捕获,否则产生 Uncaught 日志(见 NotSupportedError)
-        htmlAudioElement.play().catch(() => {})
-      }
+      applyVolume(audioList.value[index.value % audioList.value.length])
     } else {
-      let htmlAudioElement1 = audioList.value[index.value % audioLength.value]
-      if (htmlAudioElement1) {
-        htmlAudioElement1.volume = volume / 100
-        htmlAudioElement1.play().catch(() => {})
-      }
+      applyVolume(audioList.value[index.value % audioLength.value])
     }
   }
 
@@ -62,7 +90,10 @@ export function usePlayKeyboardAudio() {
 
   function playAudio() {
     if (settingStore.keyboardSound) {
-      play(settingStore.keyboardSoundVolume)
+      // 倍数兜底:合法范围 10~100;旧数据(百分比/过渡版倍数)不在范围内一律按最低 10 倍处理
+      const raw = settingStore.keyboardSoundVolume
+      const gain = raw >= 10 && raw <= 100 ? raw : 10
+      play(100, gain)
     }
   }
 

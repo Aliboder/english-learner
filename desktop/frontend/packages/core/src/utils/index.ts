@@ -87,6 +87,7 @@ export async function checkAndUpgradeSaveDict(val: any) {
         window?.umami?.track('error', currentHash)
         console.warn(currentHash)
         await saveHashSnapshot(currentHash, '')
+        ;(defaultState as any).__downgraded = true // 标记回退:导入/恢复流程据此拦截并提示,避免无痕清空
         return defaultState
       }
       let state: any = data.val
@@ -95,6 +96,7 @@ export async function checkAndUpgradeSaveDict(val: any) {
         console.warn(currentHash1)
         window?.umami?.track('error', currentHash1)
         await saveHashSnapshot(currentHash1, '')
+        ;(defaultState as any).__downgraded = true
         return defaultState
       }
       state.load = false
@@ -123,6 +125,7 @@ export async function checkAndUpgradeSaveDict(val: any) {
           console.error(currentHash2, upgradeError)
           window?.umami?.track('error', currentHash2 + upgradeError)
           await saveHashSnapshot(currentHash2, '')
+          ;(defaultState as any).__downgraded = true
           return defaultState
         }
       }
@@ -131,6 +134,7 @@ export async function checkAndUpgradeSaveDict(val: any) {
       console.error(currentHash3, e)
       window?.umami?.track('error', currentHash3 + e)
       await saveHashSnapshot(currentHash3, '')
+      ;(defaultState as any).__downgraded = true
       return defaultState
     }
   }
@@ -157,9 +161,22 @@ export async function checkAndUpgradeSaveSetting(val: any) {
       } else {
         data = val
       }
-      if (!data.version) return defaultState
+      if (!data.version) {
+        // 与词典数据一致:异常数据先留底快照再回退默认,避免「导入成功」无痕清空
+        let currentHash = '设置数据缺少版本号-自动备份'
+        console.warn(currentHash)
+        await saveHashSnapshot(currentHash, '')
+        ;(defaultState as any).__downgraded = true
+        return defaultState
+      }
       let state: SettingState & { [key: string]: any } = data.val
-      if (typeof state !== 'object') return defaultState
+      if (typeof state !== 'object') {
+        let currentHash1 = '设置数据格式无效-自动备份'
+        console.warn(currentHash1)
+        await saveHashSnapshot(currentHash1, '')
+        ;(defaultState as any).__downgraded = true
+        return defaultState
+      }
       state.load = false
       let version = Number(data.version)
       //为了保持永远是最新的快捷键选项列表，但保留住用户的自定义设置，去掉无效的快捷键选项
@@ -242,6 +259,13 @@ export async function checkAndUpgradeSaveSetting(val: any) {
         updateLocalData = true
       }
 
+      //v0.3.27:按键音量由百分比(0-100,100=原始音量)改为放大倍数(10~100,默认 10)。
+      //版本<=22 的数据一律视为旧百分比:换算为倍数(100%→1 倍)后统一到 [10,100](旧值全部落到 10)
+      if (version <= 22 && typeof state.keyboardSoundVolume === 'number') {
+        defaultState.keyboardSoundVolume = Math.max(10, Math.min(100, state.keyboardSoundVolume / 100))
+        updateLocalData = true
+      }
+
       // @ts-ignore
       delete state.shortcutKeyMap
       checkRiskKey(defaultState, state)
@@ -251,6 +275,7 @@ export async function checkAndUpgradeSaveSetting(val: any) {
       let currentHash = '设置数据解析异常-自动备份'
       window?.umami?.track('error', currentHash + e)
       await saveHashSnapshot(currentHash, '')
+      ;(defaultState as any).__downgraded = true
       return defaultState
     }
   }

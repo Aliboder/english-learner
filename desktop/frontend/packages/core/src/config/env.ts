@@ -46,7 +46,7 @@ export const SoundFileOptions = [
 ]
 export const APP_VERSION = {
   key: 'english-learner-app-version',
-  version: 6,
+  version: 7, // v0.3.27:升号后启动检测 isNew 提示功能更新,查看后标记 seen 不再提示
 }
 export const SAVE_DICT_KEY = {
   key: 'typing-word-dict',
@@ -54,7 +54,7 @@ export const SAVE_DICT_KEY = {
 }
 export const SAVE_SETTING_KEY = {
   key: 'typing-word-setting',
-  version: 22,
+  version: 23, // v0.3.27:按键音量由百分比(0-100)改为放大倍数(10~100)
 }
 
 //5版本，不再单独保存 app version字段

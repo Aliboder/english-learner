@@ -20,6 +20,19 @@ export const RELEASE_NOTES: ReleaseVersion[] = [
   {
     version: APP_VERSION.version,
     date: '2026-08-06',
+    title: '细节打磨与稳定性加固',
+    summary: '按键音量倍数滑条、复习按钮重设计、学习记录表格美化、保存链路加固',
+    features: [
+      { type: 'improve', title: '按键音量改为倍数滑条', desc: '按键音放大倍数 10~100 倍可调(默认 10 倍),滑条带试听;按键音文件更换为官方原版' },
+      { type: 'improve', title: '复习按钮重设计', desc: '「我认识/不认识/已掌握」移到单词与中文翻译中间,胶囊按钮样式,支持快捷键 1/2/3' },
+      { type: 'improve', title: '学习记录表格美化', desc: '卡片状态彩色胶囊、到期单词红色高亮、难度/稳定性着色,数字更易读' },
+      { type: 'fix', title: '保存链路加固', desc: '保存/结算失败不再卡死界面并明确提示;损坏的备份导入前拦截,不会误清数据;错误日志可完整查看' },
+      { type: 'improve', title: '其他细节', desc: '练习页单词字符间距默认调整为 2px,观感更紧凑' },
+    ],
+  },
+  {
+    version: 6,
+    date: '2026-08-06',
     title: '切词重构与单词测试美化',
     summary: '切词滑动动画、顶栏进度可视化、默写单行统一、单词测试卡片化',
     features: [

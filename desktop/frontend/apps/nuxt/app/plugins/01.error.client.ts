@@ -29,5 +29,12 @@ export default defineNuxtPlugin(nuxtApp => {
 
 function reportError(data) {
   // 桌面端无 umami 统计(上报 no-op),错误信息经 console 转发进主进程日志(设置-帮助-日志可查看,便于排障)
-  console.error('错误:', data)
+  // 注意:多参 console.error 的对象参数在主进程日志里被 String() 成 [object Object],丢细节——必须先拼成字符串
+  const err = data.jsErr || data.vueErr || data.resourceErr
+  let detail: string
+  if (err instanceof Error) detail = `${err.message}${err.stack ? '\n' + err.stack : ''}`
+  else if (typeof err === 'string') detail = err
+  else detail = err ? JSON.stringify(err) : JSON.stringify(data)
+  const info = data.vueInfo ? ` vueInfo=${JSON.stringify(data.vueInfo)}` : ''
+  console.error(`[${data.type}] ${detail}${info}`)
 }

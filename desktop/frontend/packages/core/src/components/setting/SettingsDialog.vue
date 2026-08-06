@@ -261,6 +261,15 @@ async function importJson(str: string) {
     let data = obj.val
     data.dict.val = await checkAndUpgradeSaveDict(data.dict)
     data.setting.val = await checkAndUpgradeSaveSetting(data.setting)
+    // 备份数据损坏(缺版本号/格式无效/解析异常)时,校验函数已回退默认值并留底快照:
+    // 此时导入 = 用默认值覆盖用户数据,必须拦下并明确提示(标记用完即删,防 $patch 污染 state)
+    const dictDowngraded = !!(data.dict.val as any)?.__downgraded
+    const settingDowngraded = !!(data.setting.val as any)?.__downgraded
+    delete (data.dict.val as any).__downgraded
+    delete (data.setting.val as any).__downgraded
+    if (dictDowngraded || settingDowngraded) {
+      return Toast.error('备份数据无效或已损坏,已取消导入(你的当前数据未受影响)')
+    }
     //老版本兼容逻辑
     if (obj.version === 4) {
       if (!isEmpty(data?.[APP_VERSION.key])) {
@@ -268,8 +277,11 @@ async function importJson(str: string) {
       }
     }
     runtimeStore.globalLoading = true
-    await dataSyncPersistence.forcePushLocalDataToRemote(data)
-    runtimeStore.globalLoading = false
+    try {
+      await dataSyncPersistence.forcePushLocalDataToRemote(data)
+    } finally {
+      runtimeStore.globalLoading = false
+    }
     Toast.success('导入成功！')
     runtimeStore.isNew = APP_VERSION.version > Number(data.setting?.val?.webAppVersion ?? APP_VERSION.version)
     data.setting.val.load = true
@@ -379,10 +391,21 @@ async function restoreHistoryData() {
     }
     data.dict.val = await checkAndUpgradeSaveDict(data.dict)
     data.setting.val = await checkAndUpgradeSaveSetting(data.setting)
+    // 快照损坏时校验函数已回退默认值:直接恢复 = 清空当前数据,拦下并提示
+    const dictDowngraded = !!(data.dict.val as any)?.__downgraded
+    const settingDowngraded = !!(data.setting.val as any)?.__downgraded
+    delete (data.dict.val as any).__downgraded
+    delete (data.setting.val as any).__downgraded
+    if (dictDowngraded || settingDowngraded) {
+      return Toast.error('该历史快照数据无效或已损坏,已取消恢复(你的当前数据未受影响)')
+    }
 
     runtimeStore.globalLoading = true
-    await dataSyncPersistence.forcePushLocalDataToRemote(data)
-    runtimeStore.globalLoading = false
+    try {
+      await dataSyncPersistence.forcePushLocalDataToRemote(data)
+    } finally {
+      runtimeStore.globalLoading = false
+    }
     Toast.success('恢复成功！')
     runtimeStore.isNew = APP_VERSION.version > Number(data.setting?.val?.webAppVersion ?? APP_VERSION.version)
     data.setting.val.load = true

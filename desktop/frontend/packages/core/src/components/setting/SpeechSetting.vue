@@ -9,10 +9,9 @@ import { useSpeechSoundSettings } from '../../composables/useSoundMasterSettings
 const settingStore = useSettingStore()
 const { volumeMaster, speedMaster } = useSpeechSoundSettings()
 
-// 总音量:单词发音 + 按键音量 + 效果音量统一(每行:试听喇叭 + 开关 + 滑条);总倍速:单词发音 + 翻译朗读 + 例句朗读统一
+// 总音量:单词发音 + 效果音量统一(按键音为独立放大倍数,在「音效」区单独设置);总倍速:单词发音 + 翻译朗读 + 例句朗读统一
 const VOLUME_ITEMS = [
   { key: 'wordSoundVolume', labelKey: 'word_pronunciation' },
-  { key: 'keyboardSoundVolume', labelKey: 'keyboard_volume' },
   { key: 'effectSoundVolume', labelKey: 'effect_volume' },
 ]
 const SPEED_ITEMS = [

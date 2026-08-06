@@ -49,6 +49,24 @@ function getStateName(state: number | undefined): string {
   }
   return stateMap[state ?? -1] ?? '未知'
 }
+
+// 下次复习日期颜色:已到期=红,今天内到期=橙,其余默认
+function dueClass(v: string | Date | null | undefined): string {
+  if (!v) return ''
+  const due = dayjs(v).valueOf()
+  const now = Date.now()
+  if (due <= now) return 'due-overdue'
+  if (due <= dayjs().endOf('day').valueOf()) return 'due-today'
+  return ''
+}
+
+// 难度颜色:高难度(>=0.5)=红,低难度(<=0.25)=绿
+function diffClass(v: number | undefined): string {
+  if (v == null) return ''
+  if (v >= 0.5) return 'diff-hard'
+  if (v <= 0.25) return 'diff-easy'
+  return ''
+}
 </script>
 
 <template>
@@ -71,7 +89,11 @@ function getStateName(state: number | undefined): string {
       }"
     >
       <vxe-column type="seq" width="60" title="序号" fixed="left" />
-      <vxe-column field="word" title="单词" min-width="120" fixed="left" sortable />
+      <vxe-column field="word" title="单词" min-width="120" fixed="left" sortable>
+        <template #default="{ row }">
+          <span class="word-cell">{{ row.word }}</span>
+        </template>
+      </vxe-column>
       <vxe-column field="last_review" title="最近复习日期" min-width="160" sortable>
         <template #default="{ row }">
           {{ formatDate(row.last_review as string | Date | null | undefined) }}
@@ -79,16 +101,28 @@ function getStateName(state: number | undefined): string {
       </vxe-column>
       <vxe-column field="due" title="下次复习日期" min-width="160" sortable>
         <template #default="{ row }">
-          {{ formatDate(row.due as string | Date | null | undefined) }}
+          <span :class="dueClass(row.due as string | Date | null | undefined)">
+            {{ formatDate(row.due as string | Date | null | undefined) }}
+          </span>
         </template>
       </vxe-column>
       <vxe-column field="state" title="状态" min-width="100" sortable>
         <template #default="{ row }">
-          {{ getStateName(row.state) }}
+          <span class="state-tag" :class="'state-' + row.state">{{ getStateName(row.state) }}</span>
         </template>
       </vxe-column>
-      <vxe-column field="stability" title="记忆稳定性" min-width="100" sortable />
-      <vxe-column field="difficulty" title="难度" min-width="80" sortable />
+      <vxe-column field="stability" title="记忆稳定性" min-width="100" sortable>
+        <template #default="{ row }">
+          {{ row.stability != null ? Number(row.stability).toFixed(2) : '-' }}
+        </template>
+      </vxe-column>
+      <vxe-column field="difficulty" title="难度" min-width="80" sortable>
+        <template #default="{ row }">
+          <span :class="diffClass(row.difficulty)">
+            {{ row.difficulty != null ? Number(row.difficulty).toFixed(2) : '-' }}
+          </span>
+        </template>
+      </vxe-column>
       <!--      <vxe-column field="elapsed_days" title="经过天数" min-width="90" sortable/>-->
       <vxe-column field="scheduled_days" title="计划间隔" min-width="90" sortable />
       <!--      <vxe-column field="learning_steps" title="学习步骤" min-width="90" />-->
@@ -99,6 +133,61 @@ function getStateName(state: number | undefined): string {
 </template>
 
 <style scoped lang="scss">
+// 单词列:加粗强调
+.word-cell {
+  font-weight: 600;
+  color: var(--color-main-text);
+}
+
+// 状态列:彩色胶囊标签(新词=灰/学习中=蓝/复习中=绿/重新学=红)
+.state-tag {
+  display: inline-block;
+  padding: 0.1rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.state-0 {
+  background: color-mix(in srgb, var(--color-muted) 15%, transparent);
+  color: var(--color-muted);
+}
+
+.state-1 {
+  background: color-mix(in srgb, var(--color-info) 15%, transparent);
+  color: var(--color-info);
+}
+
+.state-2 {
+  background: color-mix(in srgb, var(--color-success) 15%, transparent);
+  color: var(--color-success);
+}
+
+.state-3 {
+  background: color-mix(in srgb, var(--color-error) 15%, transparent);
+  color: var(--color-error);
+}
+
+// 下次复习日期:已到期=红加粗,今天内到期=橙
+.due-overdue {
+  color: var(--color-error);
+  font-weight: 600;
+}
+
+.due-today {
+  color: var(--color-warning);
+}
+
+// 难度:高=红,低=绿
+.diff-hard {
+  color: var(--color-error);
+}
+
+.diff-easy {
+  color: var(--color-success);
+}
+
 // vxe-table 自带浅色主题(style.css),用 CSS 变量覆盖成应用主题色,跟随深色模式
 :deep(.vxe-table) {
   --vxe-ui-layout-background-color: var(--color-card-bg);

@@ -59,17 +59,17 @@ function createMasterControl<K extends keyof SettingState>(keys: K[]) {
   }
 }
 
-/** 声音设置:总音量 = 单词发音 + 按键音量 + 效果音量统一;总倍速 = 单词发音 + 翻译朗读 + 例句朗读统一 */
+/** 声音设置:总音量 = 单词发音 + 效果音量统一(按键音为独立放大倍数,不参与总音量);总倍速 = 单词发音 + 翻译朗读 + 例句朗读统一 */
 export function useSpeechSoundSettings() {
   return useSoundMasterSettings(
-    ['wordSoundVolume', 'keyboardSoundVolume', 'effectSoundVolume'],
+    ['wordSoundVolume', 'effectSoundVolume'],
     ['wordSoundSpeed', 'transSoundSpeed', 'sentenceSoundSpeed']
   )
 }
 
-/** 音效:音量=按键音+效果音统一,无倍速 */
+/** 音效:音量=效果音(按键音为独立放大倍数,不参与总音量),无倍速 */
 export function useEffectSoundSettings() {
-  return useSoundMasterSettings(['keyboardSoundVolume', 'effectSoundVolume'], [])
+  return useSoundMasterSettings(['effectSoundVolume'], [])
 }
 
 export function useSoundMasterSettings(volumeKeys: VolumeKey[], speedKeys: SpeedKey[]) {

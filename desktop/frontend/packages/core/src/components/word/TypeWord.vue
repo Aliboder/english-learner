@@ -826,6 +826,26 @@ defineExpose({
       </Transition>
       </div>
 
+      <!-- 自测判断按钮:看单词 → 判断 → 翻译确认;胶囊样式带语义色(深/浅主题自适应) -->
+      <!-- 位置:单词与翻译正中间(mt-2 抵消单词区底部留白,mb-3 与翻译顶部间距均衡) -->
+      <div class="mt-2 mb-3 flex gap-2" v-if="isSelfAssessment && !showWordResult">
+        <button type="button" class="judge-btn judge-know" @click="know">
+          <IconFluentCheckmarkCircle16Filled />
+          <span>{{ '我认识' }}</span>
+          <span class="judge-key">{{ settingStore.shortcutKeyMap[ShortcutKey.KnowWord] }}</span>
+        </button>
+        <button type="button" class="judge-btn judge-unknown" @click="unknown">
+          <IconFluentDismissCircle16Regular />
+          <span>{{ '不认识' }}</span>
+          <span class="judge-key">{{ settingStore.shortcutKeyMap[ShortcutKey.UnknownWord] }}</span>
+        </button>
+        <button type="button" class="judge-btn judge-mastered" @click="mastered">
+          <IconFluentStar16Filled />
+          <span>{{ '已掌握' }}</span>
+          <span class="judge-key">{{ settingStore.shortcutKeyMap[ShortcutKey.MasteredWord] }}</span>
+        </button>
+      </div>
+
       <!-- 翻译:紧跟单词(打字区)下方,限宽居中 —— 与 demo 布局一致 -->
       <div
         class="translate flex flex-col gap-2 my-3 w-full"
@@ -839,27 +859,6 @@ defineExpose({
           :showFull="!settingStore.dictation || showWordResult || showFullWord"
           :show-play="false"
         />
-      </div>
-
-      <div class="mt-4 flex gap-2" v-if="isSelfAssessment && !showWordResult">
-        <BaseButton
-          :keyboard="`${'快捷键'}(${settingStore.shortcutKeyMap[ShortcutKey.KnowWord]})`"
-          size="large"
-          @click="know"
-          >{{ '我认识' }}
-        </BaseButton>
-        <BaseButton
-          :keyboard="`${'快捷键'}(${settingStore.shortcutKeyMap[ShortcutKey.UnknownWord]})`"
-          size="large"
-          @click="unknown"
-          >{{ '不认识' }}
-        </BaseButton>
-        <BaseButton
-          :keyboard="`${'快捷键'}(${settingStore.shortcutKeyMap[ShortcutKey.MasteredWord]})`"
-          size="large"
-          @click="mastered"
-          >已掌握
-        </BaseButton>
       </div>
 
       <div v-if="isWordTest && !showWordResult" class="flex gap-8 flex-col my-8 w-full">
@@ -1089,6 +1088,58 @@ defineExpose({
   .translate {
     max-width: 720px;
     margin: 0 auto;
+  }
+
+  // 自测判断按钮(认识/不认识/已掌握):胶囊 + 语义色,深浅主题自适应
+  .judge-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 1rem;
+    border-radius: 999px;
+    border: 1px solid;
+    cursor: pointer;
+    font-size: 1rem;
+    line-height: 1.4;
+    font-family: var(--font-family);
+    transition: filter 0.15s, transform 0.1s;
+    user-select: none;
+
+    svg {
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      filter: brightness(1.15);
+    }
+
+    &:active {
+      transform: scale(0.96);
+    }
+
+    .judge-key {
+      font-size: 0.75rem;
+      opacity: 0.6;
+      margin-left: 0.15rem;
+    }
+
+    &.judge-know {
+      background: color-mix(in srgb, var(--color-success) 14%, transparent);
+      border-color: color-mix(in srgb, var(--color-success) 40%, transparent);
+      color: var(--color-success);
+    }
+
+    &.judge-unknown {
+      background: color-mix(in srgb, var(--color-error) 14%, transparent);
+      border-color: color-mix(in srgb, var(--color-error) 40%, transparent);
+      color: var(--color-error);
+    }
+
+    &.judge-mastered {
+      background: color-mix(in srgb, var(--color-info) 14%, transparent);
+      border-color: color-mix(in srgb, var(--color-info) 40%, transparent);
+      color: var(--color-info);
+    }
   }
 
   .phonetic {

@@ -90,7 +90,7 @@ export const getDefaultSettingState = (): SettingState => ({
   wordReviewRatio: 3,
 
   keyboardSound: true,
-  keyboardSoundVolume: 100,
+  keyboardSoundVolume: 10, // 按键音放大倍数(10~100,默认 10;旧版为百分比已迁移)
   keyboardSoundFile: 'Alpacas',
 
   effectSound: true,
@@ -160,7 +160,7 @@ export const getDefaultSettingState = (): SettingState => ({
   practiceTopGap: 150, // 练习页内容区与窗口顶部的间距(px),设置可调(100~400)
   showDetailedTrans: false,
   wordFont: 'MiSans-Semibold',
-  wordLetterSpacing: 6,
+  wordLetterSpacing: 2,
   alwaysOnTop: false,
 })
 

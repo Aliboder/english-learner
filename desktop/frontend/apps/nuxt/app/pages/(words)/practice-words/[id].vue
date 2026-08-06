@@ -22,7 +22,7 @@ import {
 } from '@english-learner/core/utils'
 import { useRoute, useRouter } from 'vue-router'
 import dayjs from 'dayjs'
-import Footer from '@english-learner/core/components/word/Footer.vue'
+import TopToolbar from '@english-learner/core/components/word/TopToolbar.vue'
 import Panel from '@english-learner/core/components/Panel.vue'
 import { BaseIcon, Toast, ToastComponent, Tooltip } from '@english-learner/base'
 import WordList from '@english-learner/core/components/list/WordList.vue'
@@ -444,6 +444,8 @@ function watchPracticeType(n: WordPracticeType) {
 const groupSize = 7
 
 function wordLoop() {
+  // 全局回退:推进前记录当前状态(词表/下标/阶段/类型/错词标志)
+  pushNav()
   // 学习模式
   if (settingStore.wordPracticeType === WordPracticeType.FollowWrite) {
     data.index++
@@ -463,6 +465,8 @@ function wordLoop() {
 }
 
 function nextStage(originList: Word[]) {
+  // 全局回退:阶段切换前记录当前状态(回退可跨阶段)
+  pushNav()
   //每次都判断，因为每次都可能新增已掌握的单词
   let list = originList.filter(v => !checkWordIsNeedNext(v))
   statStore.stage = statStore.nextStage
@@ -577,6 +581,7 @@ function next(isTyping: boolean = true, ignoreLoop = false) {
     if (data.index === data.words.length - 1) {
       data.wrongWords = data.wrongWords.filter(v => !data.excludeWords.includes(v.word))
       if (data.wrongWords.length) {
+        pushNav()
         data.isTypingWrongWord = true
         settingStore.wordPracticeType = WordPracticeType.FollowWrite
         data.words = shuffle(cloneDeep(data.wrongWords))
@@ -587,6 +592,7 @@ function next(isTyping: boolean = true, ignoreLoop = false) {
         complete()
       }
     } else {
+      pushNav()
       data.index++
     }
   } else {
@@ -607,6 +613,7 @@ function next(isTyping: boolean = true, ignoreLoop = false) {
       }
       data.wrongWords = data.wrongWords.filter(v => !checkWordIsNeedNext(v))
       if (data.wrongWords.length) {
+        pushNav()
         data.isTypingWrongWord = true
         settingStore.wordPracticeType = WordPracticeType.FollowWrite
         data.words = shuffle(cloneDeep(data.wrongWords))
@@ -656,7 +663,10 @@ function next(isTyping: boolean = true, ignoreLoop = false) {
         wordLoop()
       } else {
         if (data.isTypingWrongWord) wordLoop()
-        else data.index++
+        else {
+          pushNav()
+          data.index++
+        }
       }
     }
   }
@@ -771,12 +781,40 @@ function repeat() {
   initData(temp)
 }
 
+// ---- 全局回退:导航快照栈(每次推进前压栈,prev 弹栈恢复,可跨阶段/错词循环/分组循环回退) ----
+type NavSnapshot = {
+  words: Word[]
+  index: number
+  stage: number
+  type: number
+  isTypingWrongWord: boolean
+}
+const navStack: NavSnapshot[] = []
+
+function pushNav() {
+  navStack.push({
+    words: data.words,
+    index: data.index,
+    stage: statStore.stage,
+    type: settingStore.wordPracticeType,
+    isTypingWrongWord: data.isTypingWrongWord,
+  })
+}
+
 function prev() {
-  if (data.index === 0) {
+  const snap = navStack.pop()
+  if (!snap) {
     Toast.warning('已经是第一个了~')
-  } else {
-    data.index--
+    return
   }
+  // 恢复导航状态(学习数据/统计不回滚,回退只是导航回看)
+  // 注意:不 emit resetWord——word 变化已由 TypeWord 的 watch 触发 resetState(NewWord),
+  // 再 emit 会二次 resetState 导致 单词+翻译+翻译 三连播
+  data.words = snap.words
+  data.index = snap.index
+  statStore.stage = snap.stage as WordPracticeStage
+  settingStore.wordPracticeType = snap.type as WordPracticeType
+  data.isTypingWrongWord = snap.isTypingWrongWord
 }
 
 function skip() {
@@ -939,7 +977,6 @@ useEvents([
   [ShortcutKey.ToggleDictation, () => (settingStore.dictation = !settingStore.dictation)],
   [ShortcutKey.ToggleTheme, toggleTheme],
   [ShortcutKey.ToggleConciseMode, toggleConciseMode],
-  [ShortcutKey.ToggleToolbar, () => (settingStore.showToolbar = !settingStore.showToolbar)],
   [ShortcutKey.TogglePanel, () => (settingStore.showPanel = !settingStore.showPanel)],
   [ShortcutKey.RandomWrite, randomWrite],
 ])
@@ -948,7 +985,10 @@ useEvents([
 <template>
   <PracticeLayout v-loading="loading" panelLeft="var(--word-panel-margin-left)">
     <template v-slot:practice>
-      <div class="practice-word">
+      <!-- padding-top 为顶部固定工具栏让位(工具栏 fixed 悬浮,流内容从工具栏下方开始,避免遮挡) -->
+      <div class="practice-word" style="padding-top: 3.25rem">
+        <!-- 顶部固定工具栏:进度条 + 操作按钮(替代原底部底栏) -->
+        <TopToolbar @skipStep="skipStep" @back="goBack" />
         <div class="fixed z-99999 center mt-3" v-if="statStore.timerPaused">
           <ToastComponent
             :duration="0"
@@ -971,33 +1011,13 @@ useEvents([
         />
 
         <div class="mb-46 w-full" v-else>
-          <!--        前后单词-->
-          <div
-            class="fixed z-1 top-4 w-full hidden md:block"
-            style="left: calc(50vw + var(--aside-width) / 2 - var(--toolbar-width) / 2); width: var(--toolbar-width)"
-            v-if="settingStore.showNearWord"
-          >
-            <Tooltip :title="`${'上一个'}(${settingStore.shortcutKeyMap[ShortcutKey.Previous]})`">
-              <div class="relative z-2 center gap-2 cp float-left" @click="prev" v-if="prevWord">
-                <IconFluentArrowLeft16Regular class="arrow" width="22" />
-                <div class="word">{{ prevWord.word }}</div>
-              </div>
-            </Tooltip>
-
-
-            <Tooltip :title="`${'下一个'}(${settingStore.shortcutKeyMap[ShortcutKey.Next]})`">
-              <div class="relative center gap-2 cp float-right mr-3" @click="next(false)" v-if="nextWord">
-                <div class="word" :class="settingStore.dictation && 'word-shadow'">
-                  {{ nextWord.word }}
-                </div>
-                <IconFluentArrowRight16Regular class="arrow" width="22" />
-              </div>
-            </Tooltip>
-          </div>
+          <!-- prevWord/nextWord 仅用于切词动画方向判断(左滑/右滑),左右词不渲染 -->
           <TypeWord
             ref="typingRef"
             :word="word"
             :question="data.question"
+            :prev-word="prevWord"
+            :next-word="nextWord"
             @wrong="onTypeWrong"
             @complete="next"
             @mastered="toggleWordSimpleWrapper"
@@ -1051,9 +1071,6 @@ useEvents([
           <Empty v-else />
         </div>
       </Panel>
-    </template>
-    <template v-slot:footer>
-      <Footer @skipStep="skipStep" @back="goBack" />
     </template>
   </PracticeLayout>
   <Statistics v-model="isComplete" :loading="settling" />

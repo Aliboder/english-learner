@@ -123,3 +123,53 @@ scoped 样式 `.foo[data-v-父hash]` 需要元素带**父组件**的 data-v 属�
 4. 产物验证(grep dist 里新 class/新文案)能发现构建未生效
 4. 缓存放大器:构建偶发问题 + Electron 磁盘缓存复用旧产物 = "反复出现"的放大机制。2026-08-06 已根治:main.js 的 app:// 协议响应强制 `Cache-Control: no-store`(每次启动读磁盘最新版);开测试窗口前清 `%APPDATA%/EnglishLearnerDev/Cache` 等目录作双保险(见 WORKFLOW.md)。
 5. 根因排查(2026-08-06,连续构建实验 + 系统检查):连续 3 次构建全部正常 → 排除必然性问题;磁盘充足(289G)、Defender 实时保护已关闭、cleanDist 每次全清 .nuxt/dist、无 vite 预构建缓存残留。**最大嫌疑:内存压力**(16GB 内存构建时仅剩 ~4.4GB 空闲,构建期间多进程挤压 vite worker,偶发部分组件 scoped 编译丢失)。已自动化兜底:`desktop/scripts/build-check.sh`(构建 → cssHashMatch 验证 → 失败自动重构建,最多 3 次),构建通过 = 产物可用;建议构建时关闭多余程序/electron 窗口。
+
+## 31. TransitionGroup 内容宽度突变 → FLIP transform 残留(血泪,2026-08-06 三格词条传送带)
+
+**现象**:开启默写模式后,主格单词切换成下划线时整体左移 ~34px 不再居中,切词后也不恢复;grid 列 computed style 完全对称(310.51/120.97/310.52)、`justify-self: center` 正确,但主格 computed transform 仍有偏移。
+
+**根因**:默写横线用 `&nbsp;` 空格占位(121px)与正常词形(188px)**宽度不同** → 主格内容宽度突变 → grid 弹性列(`1fr auto 1fr`)重新计算 → TransitionGroup 把列重算造成的位置变化误判为 move → 给格子打上 `-move` class 做 FLIP(记录新旧位置差),格子不在动画中时 class 残留、transform 残留 → 主格持续偏移。
+
+**修复**:横线不再用空格占位,渲染**透明词形文本**(`color: transparent`) + `border-bottom` 横线 → 宽度 = 词形宽度,与正常模式完全一致 → 列不重算 → 无 FLIP 残留。实测 offset=0 居中(正常/默写/切词后均成立)。
+
+**教训**:① 用 TransitionGroup 做位置动画,"位置稳定"不只看 key 稳定——**内容宽度/高度突变同样触发 move**(弹性 grid 列会放大这个效应);固定布局下单元格内容必须恒定宽度,或给单元格固定宽度 ② FLIP 残留诊断:getComputedStyle 查 transform + classList 找残留 `-move` 类(临时诊断脚本见 WORKFLOW.md 诊断脚本一节,需注册 app:// protocol,show:false) ③ 这类"内容变化引起布局变化"的联动改法,优先保证变化前后占位宽度一致。
+
+## 32. 同一状态变更走"事件 + watch"双路径 → 音频三连播(2026-08-06)
+
+**现象**:点击左格(上一个词)时,先播单词发音 + 翻译,约 1 秒后又单独播一遍翻译。
+
+**根因**:prev() 里 `emit('resetWord')` 与页面 `watch(() => word)` 都触发 resetState → 播单词 + 翻译;watch 内还额外触发了第二次播放。
+
+**修复**:移除 prev() 里的 emit —— word 的 watch 已覆盖重置逻辑,保留双路径必然双播。
+
+**教训**:排查"重复播放/重复调用"类问题,先找同一变更的双触发路径(事件 + watch 同时处理);两个入口必须二选一,并说明归属。
+
+## 33. Edit 匹配失败:old_string 含不可见字符( )(2026-08-06)
+
+**现象**:Edit 报 old_string 不匹配,肉眼对比文件内容完全相同。
+
+**根因**:目标代码里存在不可见字符——Vue 模板中 `&nbsp;` 实体经编译后是 ` `(nbsp)而不是普通空格,粘贴进 old_string 时丢失。
+
+**修复**:用 `node -e` 读文件 + 正则替换(`/ /g`),或直接复制原文件字节;Edit 前先 `grep -P '\xA0'` 确认目标行。
+
+**教训**:模板/源码里"看起来是空格"的位置要先确认是否 nbsp 等不可见字符;此类失败不要反复猜字符串,改用脚本定位。
+
+## 34. 遮挡↔显示切换盒高不同 → FLIP transform 残留,主格偏下 7px 不居中(2026-08-06)
+
+**现象**:默写模式下,主格词在遮挡(横线占位)↔ 显示单词切换时,或切词后,垂直方向偏下 7px 不居中;悬停显示/输入等操作后偶尔归位,再切词又复发。
+
+**根因**:`.dict-line` 用了 `border-bottom 2px + padding-bottom 0.08em + line-height 1.15`,盒高 69px;正常显示 `.letter`(继承 `.word` 的 line-height 1)盒高 56px。遮挡↔显示切换 → 主格高度突变 → grid 行高重算 → TransitionGroup 把布局变化误判为 move → `strip-move` class + transform 残留(translateY 7px),动画结束不归零。与 #31(宽度突变)同机制,这次是**高度**突变。
+
+**修复**:横线改用 `background` 底部渐变(`linear-gradient(...) bottom 0.15em / 100% 2px no-repeat`,不占盒尺寸),`line-height` 与正常显示统一为 1 → 遮挡/显示盒高恒定 → 切换不触发 FLIP。诊断脚本实测 12 个场景(初始/显示/快速切换/输入中/切词)全部 transform:none、主格中心与容器中心完全重合。
+
+**教训**:① 三格传送带(TransitionGroup + FLIP)下,格内容的**宽度和高度**都必须恒定——任何盒模型尺寸变化(border/padding/line-height/字体)都会触发列/行重算 → FLIP 残留 ② 边框装饰优先用 background 渐变替代 border(不占盒尺寸)③ 此类"切换后位置不对"问题,别凭猜改布局,用隐藏窗口 + executeJavaScript 测量(getBoundingClientRect + computed transform + classList)复现定位(脚本 scripts/diag-align.js)。
+
+## 35. Electron 隐藏窗口(show:false)下 CSS 过渡不执行,rAF 动画卡在 from 阶段(2026-08-06)
+
+**现象**:诊断脚本(show:false 窗口)验证切词滑动动画时,过渡类正常应用(leave-active/enter-from 都在),但元素 transform 停在初始值不动、transitionend 不触发、类永久残留——误判为动画代码 bug,反复排查 CSS 编译/选择器前缀。
+
+**根因**:隐藏窗口(show:false)下 Chromium 不执行 rAF/动画帧渲染,`transition` 动画不会推进,元素永远停在 from 状态;这是**测量环境问题,不是代码问题**。真实用户窗口可见,动画正常(可见窗口 + 屏幕外定位实测:350ms 过渡完整执行、类按时清理)。
+
+**修复**:诊断脚本窗口改 `show: true` 并移到屏幕外(`x: -2000, y: -2000`),既不打扰用户动画也正常执行。
+
+**教训**:① Electron 诊断窗口测动画/过渡,必须 show:true(可移出屏幕);show:false 下 getBoundingClientRect 可用但动画/定时器行为不可信 ② 过渡类已应用但 transform 不动 → 先怀疑渲染环境,再怀疑 CSS ③ 同一脚本的另一个坑:练习词表大小用 `dict.perDayStudyNumber`(不是 setting 里的),设 1 时 next() 直接走结算、词永远不变,切词验证必须多词模式。

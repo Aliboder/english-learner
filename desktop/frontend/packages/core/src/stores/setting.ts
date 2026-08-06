@@ -25,7 +25,7 @@ export interface SettingState {
   repeatCustomCount?: number // 自定义重复次数
   dictation: boolean // 显示默写
   translate: boolean // 显示翻译
-  showNearWord: boolean // 显示上/下一个词
+  showNearWord: boolean // 废弃(2026-08-06 单格重构后左右词隐藏);字段保留仅存档兼容,不再使用
   ignoreCase: boolean // 忽略大小写
   allowWordTip: boolean // 默写时时否允许查看提示
   waitTimeForChangeWord: number // 切下一个词的等待时间（自动模式）
@@ -72,6 +72,7 @@ export interface SettingState {
   limitTransSpeech: boolean // 精简翻译朗读:每个词性最多朗读前 3 条释义(默认关 = 朗读全部)
   sentenceSoundSpeed: number // 例句朗读语速(与单词/翻译语速独立;例句朗读共用 ttsVoice 音色)
   practiceAreaWidth: number // 练习页内容区固定宽度(px,窗口窄时自动收窄)
+  testTransFontSize: number // 单词测试选项卡翻译文字字号(px,单词测试页卡片内翻译/词性)
   showDetailedTrans: boolean // 显示详细翻译(括号补充内容;关闭后翻译更简洁)
   wordFont: string // 全局字体(内置 MiSans 字重名,默认 'MiSans-Semibold',作用于整个界面 + 练习页)
   wordLetterSpacing: number // 练习页单词字符间距(px,换字体后可手动微调)
@@ -155,6 +156,7 @@ export const getDefaultSettingState = (): SettingState => ({
   autoPlayTrans: true,
   limitTransSpeech: false,
   practiceAreaWidth: 870,
+  testTransFontSize: 16,
   practiceTopGap: 150, // 练习页内容区与窗口顶部的间距(px),设置可调(100~400)
   showDetailedTrans: false,
   wordFont: 'MiSans-Semibold',

@@ -1,5 +1,5 @@
 <template>
-  <div class="flex gap-5 w-full h-3">
+  <div class="flex gap-4 w-full h-2">
     <template v-for="i of props.stages">
       <template v-if="i?.children?.length && i.active">
         <div class="flex gap-1" :style="{ width: i.ratio + '%' }">
@@ -8,7 +8,7 @@
               <Progress
                 :style="{ width: j.ratio + '%' }"
                 :percentage="j.percentage"
-                :stroke-width="8"
+                :stroke-width="6"
                 :color="j.active ? '#72c240' : '#69b1ff'"
                 :active="j.active"
                 :show-text="false"
@@ -22,7 +22,7 @@
           <Progress
             :style="{ width: i.ratio + '%' }"
             :percentage="i.percentage"
-            :stroke-width="8"
+            :stroke-width="6"
             :color="i.active && props.stages.length > 1 ? '#72c240' : '#69b1ff'"
             :active="i.active"
             :show-text="false"

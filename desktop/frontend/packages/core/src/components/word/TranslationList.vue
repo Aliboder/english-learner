@@ -208,7 +208,8 @@ function playTranslationAudio() {
 
   .trans-text {
     display: inline;
-    color: var(--color-main-text);
+    // 翻译主文本用专用变量(浅色 black / 深色亮白),比 main-text 灰更清晰
+    color: var(--color-translate-main);
     word-break: break-word;
   }
 }

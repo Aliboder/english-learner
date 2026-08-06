@@ -98,6 +98,11 @@
   --color-warning: #fa8c16; // 警告/到期
   --color-info: #1890ff; // 学习中/信息
   --color-muted: #bfbfbf; // 未学/禁用
+
+  // ===== 练习页字体色(打字区三色 + 音标;深浅主题各一套,勿硬编码) =====
+  --color-font-1: #475569; // 音标/次要强调文本(浅色)
+  --color-typing-input: #16a34a; // 打字已输入字母(浅色:沉稳深绿)
+  --color-typing-wait: #334155; // 打字未输入字母(浅色:深灰蓝,弱化未输入部分)
   --color-accent: #ac6ed1; // 点缀色(每日目标数等)
 }
 
@@ -176,6 +181,12 @@ html.dark {
   --color-info: #60a5fa;
   --color-muted: #6b7280;
   --color-accent: #c39ae8;
+
+  // 练习页字体色(深浅主题各一套)
+  --color-font-1: rgba(255, 255, 255, 0.8); // 音标/次要强调文本(深色)
+  --color-typing-input: #4ade80; // 打字已输入字母(深色:亮绿,深底醒目)
+  --color-typing-wait: rgba(255, 255, 255, 0.6); // 打字未输入字母(深色:半透明白)
+  --color-translate-main: rgba(255, 255, 255, 0.92); // 翻译主文本(深色;浅色段已有 black)
 }
 
 @media (max-width: 1706px) {

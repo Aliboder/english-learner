@@ -19,7 +19,6 @@ import ClickableWord from './ClickableWord.vue'
 import WordLookupPopover from './WordLookupPopover.vue'
 import { _nextTick, last, normalizeWord, useNav } from '../../utils'
 import { BaseButton, BaseIcon, Textarea, Toast, Tooltip, VolumeIcon } from '@english-learner/base'
-import Space from '../article/Space.vue'
 import { useI18n } from 'vue-i18n'
 import { useWordOptions } from '../../hooks/dict.ts'
 import { openWordCollectPicker } from '../../hooks/useWordCollectPicker.ts'
@@ -34,6 +33,9 @@ const { t: $t } = useI18n()
 interface IProps {
   word: Word
   question?: Question
+  /** 上一个/下一个单词:仅用于切词动画方向判断(切下一词向左滑/切上一词向右滑),不再渲染 */
+  prevWord?: Word
+  nextWord?: Word
 }
 
 const props = withDefaults(defineProps<IProps>(), {
@@ -356,44 +358,9 @@ async function onTyping(e: KeyboardEvent) {
   inputLock = true
   let letter = e.key
   // console.log('letter',letter)
-  //默写特殊逻辑
-  if (settingStore.wordPracticeType === WordPracticeType.Dictation) {
-    if (e.code === 'Space') {
-      //如果输入长度大于单词长度/单词不包含空格，并且输入不为空（开始直接输入空格不行），则显示单词；
-      // 这里inputLock 不设为 false，不能再输入了，只能删除（删除会重置 inputLock）或按空格切下一格
-      if (input.length && (input.length >= target.length || !target.includes(' '))) {
-        //比对是否一致
-        if (right) {
-          //如果已显示单词，则发射完成事件，并 return
-          if (showWordResult.value) {
-            return emit('complete')
-          } else {
-            //未显示单词，则播放正确音乐，并在后面设置为 showWordResult.value 为 true 来显示单词
-            showWordResult.value = true
-            playCorrect()
-            if (settingStore.wordSound) {
-              playWord(WordPlayTrigger.DictationReveal, { volumeRef: targetVolumeIcon })
-            }
-          }
-        } else {
-          //错误处理
-          playBeep()
-          showWordResult.value = true
-          if (settingStore.wordSound) {
-            playWord(WordPlayTrigger.DictationReveal, { volumeRef: targetVolumeIcon })
-          }
-          typo()
-        }
-        return
-      }
-    }
-    //默写途中不判断是否正确，在按空格再判断
-    input += letter
-    wrong = ''
-    playKeyboardAudio()
-    updateCurrentWordInfo()
-    inputLock = false
-  } else if (settingStore.wordPracticeType === WordPracticeType.Identify && !showWordResult.value) {
+  // 2026-08-06 默写(Dictation)已与其他形式统一:删除"默写途中不判断、按空格才出答案"的特殊逻辑,
+  // 改为逐字母判断、输完自动出答案(完成处理见下方 input === target 分支)
+  if (settingStore.wordPracticeType === WordPracticeType.Identify && !showWordResult.value) {
     //当自测模式下，按其他键则自动默认为不认识
     showWordResult.value = true
     typo()
@@ -474,7 +441,7 @@ async function onTyping(e: KeyboardEvent) {
       ) {
         showWordResult.value = true
       }
-      if ([WordPracticeType.FollowWrite, WordPracticeType.Spell].includes(settingStore.wordPracticeType)) {
+      if ([WordPracticeType.FollowWrite, WordPracticeType.Spell, WordPracticeType.Dictation].includes(settingStore.wordPracticeType)) {
         if (settingStore.autoNextWord) {
           // 自动切换:短暂延时后跳转到下一个单词
           completeTypeWord(true)
@@ -668,14 +635,9 @@ function checkCursorPosition() {
         left: inputRect.right - typingWordRect.left + cursorOffset.left,
       }
     } else {
-      const dictation = document.querySelector(`.dictation`)
-      let elRect
-      if (dictation) {
-        elRect = dictation.getBoundingClientRect()
-      } else {
-        const letter = document.querySelector(`.letter`)
-        elRect = letter.getBoundingClientRect()
-      }
+      const letter = document.querySelector(`.letter`)
+      let elRect = letter ? letter.getBoundingClientRect() : null
+      if (!elRect) return
       cursor = {
         top: elRect.top + elRect.height - cursorEl.clientHeight - typingWordRect.top + cursorOffset.top,
         left: elRect.left - typingWordRect.left + cursorOffset.left,
@@ -718,6 +680,20 @@ const isSimple = $computed(() => isWordSimple(props.word))
 
 // 「下一个」快捷键(设置-快捷键可修改);输完单词后,按空格或该快捷键均可切换
 const nextShortcutKey = $computed(() => settingStore.shortcutKeyMap[ShortcutKey.Next] ?? '')
+
+// ---- 单格布局:当前词居中,左右词隐藏 ----
+// 切词动画方向:新词 = 下一个(旧词是 prevWord)→ 向左滑;新词 = 上一个(旧词是 nextWord)→ 向右滑;
+// 面板跳转/随机等任意跳转(prevWord/nextWord 都不是旧词)默认向前(向左滑)
+// watch 默认 flush:'pre',切词时先更新 animDir 再渲染,Transition 读到的名字已是新方向
+let animDir = $ref<'fwd' | 'back'>('fwd')
+const transitionName = $computed(() => (animDir === 'fwd' ? 'slide-next' : 'slide-prev'))
+watch(
+  () => props.word,
+  (_newWord, oldWord) => {
+    const ow = oldWord?.word?.toLowerCase()
+    animDir = props.prevWord?.word?.toLowerCase() === ow ? 'fwd' : props.nextWord?.word?.toLowerCase() === ow ? 'back' : 'fwd'
+  }
+)
 
 defineExpose({
   del,
@@ -811,6 +787,11 @@ defineExpose({
         <VolumeIcon title="朗读翻译(中文)" :simple="true" @click="playTranslation" />
       </div>
 
+      <!-- 单格滑动切词:key=词,切词时按方向滑动过渡(下一个向左/上一个向右);打字/遮挡切换不触发动画 -->
+      <!-- word-stage:relative 定位基准 + 横向裁切;enter 元素留文档流撑高,leave 元素 absolute 对齐 stage 顶部(与 enter 同一高度) -->
+      <div class="word-stage">
+      <Transition :name="transitionName">
+        <div :key="word.word.toLowerCase()" class="word-cell">
       <Tooltip
         :title="settingStore.dictation ? `${'快捷键'} ${settingStore.shortcutKeyMap[ShortcutKey.ShowWord]} ${'显示单词'}` : ''"
       >
@@ -825,44 +806,25 @@ defineExpose({
           @mouseenter="showWord"
           @mouseleave="mouseleave"
         >
-          <div v-if="settingStore.wordPracticeType === WordPracticeType.Dictation">
-            <div
-              class="letter text-align-center w-full inline-block"
-              v-opacity="!settingStore.dictation || showWordResult || showFullWord"
-            >
-              {{ word.word }}
-            </div>
-            <div
-              class="mt-2 w-120 dictation"
-              :style="{ minHeight: settingStore.fontSize.wordForeignFontSize + 'px' }"
-              :class="showWordResult ? (right ? 'right' : 'wrong') : ''"
-            >
-              <template v-for="i in input">
-                <span class="l" v-if="i !== ' '">{{ i }}</span>
-                <Space class="l" v-else :is-wrong="showWordResult ? !right : false" :is-wait="!showWordResult" />
-              </template>
-            </div>
+          <!-- 2026-08-06 统一单行结构:默写新词(Dictation)不再单独开拼写格子,
+               与跟写/听写/拼写一致,直接在词位输入(单词由 dictation 开关控制遮挡) -->
+          <div v-if="currentPracticeSentenceIndex === -1">
+            <span class="input" v-if="input">{{ input }}</span>
+            <span class="wrong" v-if="wrong">{{ wrong }}</span>
+            <!-- 默写占位:连续横线(非逐字母下划线),宽度随词长,输入推进时保持 -->
+            <span class="letter dict-line" v-if="settingStore.dictation && !showFullWord">
+              {{ displayWord }}
+            </span>
+            <span class="letter" v-else>{{ displayWord }}</span>
           </div>
-          <template v-else>
-            <div v-if="currentPracticeSentenceIndex === -1">
-              <span class="input" v-if="input">{{ input }}</span>
-              <span class="wrong" v-if="wrong">{{ wrong }}</span>
-              <span class="letter" v-if="settingStore.dictation && !showFullWord">
-                {{
-                  displayWord
-                    .split('')
-                    .map(v => (v === ' ' ? '&nbsp;' : '_'))
-                    .join('')
-                }}
-              </span>
-              <span class="letter" v-else>{{ displayWord }}</span>
-            </div>
-            <div v-else>
-              <span class="input">{{ word.word }}</span>
-            </div>
-          </template>
+          <div v-else>
+            <span class="input">{{ word.word }}</span>
+          </div>
         </div>
       </Tooltip>
+        </div>
+      </Transition>
+      </div>
 
       <!-- 翻译:紧跟单词(打字区)下方,限宽居中 —— 与 demo 布局一致 -->
       <div
@@ -1102,23 +1064,11 @@ defineExpose({
         </template>
       </div>
     </div>
-    <div
-      v-if="!editingNote"
-      class="cursor"
-      :style="{
-        top: cursor.top + 'px',
-        left: cursor.left + 'px',
-        height: isTypingSentence() ? '20px' : settingStore.fontSize.wordForeignFontSize + 'px',
-      }"
-    ></div>
     <WordLookupPopover />
   </div>
 </template>
 
 <style scoped lang="scss">
-.dictation {
-  border-bottom: 2px solid gray;
-}
 
 .typing-word {
   width: 100%;
@@ -1157,6 +1107,85 @@ defineExpose({
     animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
   }
 
+  // ---- 单格布局(2026-08-06 重构:左右词隐藏,当前词居中;切词用方向性滑动动画) ----
+  // word-stage:leave 元素(absolute)的定位基准 + 横向裁切;高度由 enter 元素(流内)撑起,min-height 保底
+  // 2026-08-06 修复:leave 元素 absolute 脱离 flex 流后静态位置落在容器顶部,与 enter 高度不一致 →
+  // 显式 top/left/right 对齐 stage 顶部(enter 是 stage 唯一流内元素,从顶部开始,两者同一高度)
+  .word-stage {
+    position: relative;
+    overflow: hidden;
+    min-height: 5rem;
+    width: 100%;
+  }
+
+  .word-cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+  }
+
+  // 切下一个:向左滑(新词从右侧滑入,旧词向左滑出,同屏交错)
+  .slide-next-enter-active,
+  .slide-next-leave-active {
+    transition: transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  .slide-next-leave-active {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+
+  .slide-next-enter-from {
+    transform: translateX(100%);
+  }
+
+  .slide-next-leave-to {
+    transform: translateX(-100%);
+  }
+
+  // 切上一个:向右滑(镜像方向)
+  .slide-prev-enter-active,
+  .slide-prev-leave-active {
+    transition: transform 0.35s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+
+  .slide-prev-leave-active {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+  }
+
+  .slide-prev-enter-from {
+    transform: translateX(-100%);
+  }
+
+  .slide-prev-leave-to {
+    transform: translateX(100%);
+  }
+
+  // 默写占位:透明词形 + 底部连续横线(宽度 = 词形宽度,精确且不改变布局宽度)
+  // 2026-08-06 修复①:border-bottom/padding-bottom/line-height 1.15 使盒高(69px)大于正常显示(56px),
+  // 遮挡↔显示切换 → 主格高度突变 → grid 行高重算 → TransitionGroup 误判 FLIP move → transform 残留(偏下 7px 不居中)
+  // 横线改用 background 底部渐变(不占盒尺寸),line-height 与正常显示一致 → 两种状态盒高恒定,切换零跳动
+  // 2026-08-06 修复②:.letter 定义在 .dict-line 之后,同特异性下 color 被 .letter 覆盖 → 透明失效(模糊没打上),
+  // 用 !important 锁定透明;background-position 用两值语法(0 100%),"bottom 0.15em" 是无效声明会回退左上角(横线画在单词上方)
+  .dict-line {
+    display: inline-block;
+    color: transparent !important;
+    line-height: 1;
+    background-image: linear-gradient(var(--color-typing-wait), var(--color-typing-wait));
+    background-repeat: no-repeat;
+    background-size: 100% 2px;
+    background-position: 0 100%;
+    user-select: none;
+  }
+
+
+
   // 手动切换提示(关闭自动切换时,输完单词显示;顶部间距由模板类控制,自身不再带 margin)
   .next-word-tip {
     font-size: 0.85rem;
@@ -1173,13 +1202,19 @@ defineExpose({
     }
   }
 
+  // 打字区三色(深浅主题各一套,变量定义在 main.scss):未输入弱化、已输入绿色、错误红色
+  .letter {
+    color: var(--color-typing-wait);
+  }
+
   .input,
   .right {
-    color: rgb(22, 163, 74);
+    color: var(--color-typing-input);
   }
 
   .wrong {
-    color: rgba(red, 0.6);
+    // 原 rgba(red, 0.6) 为无效 CSS(浏览器忽略,错字不显红);改用状态色变量,深浅主题自动适配
+    color: var(--color-error);
   }
 
   .tabs {

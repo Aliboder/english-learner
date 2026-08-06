@@ -309,6 +309,13 @@ const todayNewReview = $computed(() => {
   return { new: todayNew, review: todayReview }
 })
 
+// 今日待学新词 = 每日目标 - 今日已学新词(展示"剩余量":学完今天的显示 0,不再永远显示下一批 20 个;
+// 仅影响展示,学习任务数据 taskWords 不受影响,点开始学习仍生成下一批新词)
+const todayNewTodo = $computed(() => {
+  if (!store.sdict?.id) return 0
+  return Math.max(0, (store.sdict.perDayStudyNumber ?? 0) - todayNewReview.new)
+})
+
 // 累计学习词数(所有新学统计 + 进行中缓存)
 const totalWords = $computed(() => {
   let n = total(allWordStatistics, 'new')
@@ -778,7 +785,8 @@ onActivated(async () => {
         </div>
         <div class="flex mt-4 justify-between">
           <div class="stat">
-            <div class="num">{{ practiceData?.taskWords?.new?.length }}</div>
+            <!-- 无未完成任务:显示今日剩余新词数(学完为 0);有未完成任务:显示任务剩余词数 -->
+            <div class="num">{{ isSaveData ? practiceData?.taskWords?.new?.length : todayNewTodo }}</div>
             <div class="txt">{{ '新词' }}</div>
           </div>
           <div class="stat">

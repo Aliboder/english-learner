@@ -26,9 +26,6 @@ const simpleWords = $computed({
     <SettingItem title="忽略大小写" desc="开启后，输入时不区分大小写，如输入“hello”和“Hello”都会被认为是正确的">
       <Switch v-model="settingStore.ignoreCase" />
     </SettingItem>
-    <SettingItem title="显示上一个/下一个单词" desc="开启后，练习中会在上方显示上一个/下一个单词">
-      <Switch v-model="settingStore.showNearWord" />
-    </SettingItem>
     <SettingItem title="输入错误时，清空已输入内容">
       <Switch v-model="settingStore.inputWrongClear" />
     </SettingItem>
@@ -132,6 +129,9 @@ const simpleWords = $computed({
     </SettingItem>
     <SettingItem title="中文字体" desc="练习页翻译/例句中文字号">
       <Slider :min="10" :max="100" v-model="settingStore.fontSize.wordTranslateFontSize" showText showValue unit="px" />
+    </SettingItem>
+    <SettingItem title="测试选项卡字号" desc="单词测试页选项卡卡片里的翻译/词性文字大小">
+      <Slider :min="10" :max="40" v-model="settingStore.testTransFontSize" showText showValue unit="px" />
     </SettingItem>
     <SettingItem title="字符间距" desc="练习页单词字母间距(px),更换全局字体后可手动微调至最佳观感">
       <Slider :min="0" :max="24" :step="1" v-model="settingStore.wordLetterSpacing" showText showValue unit="px" />

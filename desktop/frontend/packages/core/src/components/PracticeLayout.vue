@@ -37,16 +37,9 @@ const wrapStyle = computed(() => ({
   transition: all var(--anim-time);
 }
 
-.footer-hide {
-  .footer-wrap {
-    bottom: -6rem;
-  }
-}
-
+// 工具栏浮窗由 Footer 组件内部 fixed 定位(可拖拽),这里只需普通容器
 .footer-wrap {
-  position: fixed;
-  bottom: calc(env(safe-area-inset-bottom, 0px));
-  transition: all var(--anim-time);
+  position: relative;
   z-index: 999;
 }
 
@@ -96,17 +89,6 @@ const wrapStyle = computed(() => ({
     .wrap {
       height: calc(100vh - 2rem) !important;
     }
-
-    .footer-wrap {
-      bottom: calc(-8rem + env(safe-area-inset-bottom, 0px));
-    }
-  }
-
-  .footer-wrap {
-    bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
-    left: 0.5rem;
-    right: 0.5rem;
-    width: auto;
   }
 }
 
@@ -121,16 +103,6 @@ const wrapStyle = computed(() => ({
     .wrap {
       height: calc(100vh - 1.5rem) !important;
     }
-
-    .footer-wrap {
-      bottom: calc(-7rem + env(safe-area-inset-bottom, 0px));
-    }
-  }
-
-  .footer-wrap {
-    bottom: calc(0.3rem + env(safe-area-inset-bottom, 0px));
-    left: 0.3rem;
-    right: 0.3rem;
   }
 
   .panel-wrap {

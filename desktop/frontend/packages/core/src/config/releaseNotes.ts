@@ -20,6 +20,15 @@ export const RELEASE_NOTES: ReleaseVersion[] = [
   {
     version: APP_VERSION.version,
     date: '2026-08-06',
+    title: '练习页暂停不再清空内容',
+    summary: '计时暂停时练习内容不再消失,原地保留,直接打字即恢复计时',
+    features: [
+      { type: 'fix', title: '计时暂停不再清空练习内容', desc: '3 分钟无键盘操作或切走窗口导致计时暂停时,仅显示浮层提示,单词与翻译内容原地保留;暂停期间已输入的字母不丢失,直接打字或点提示关闭按钮即恢复计时' },
+    ],
+  },
+  {
+    version: 7,
+    date: '2026-08-06',
     title: '细节打磨与稳定性加固',
     summary: '按键音量倍数滑条、复习按钮重设计、学习记录表格美化、保存链路加固',
     features: [

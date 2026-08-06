@@ -1010,7 +1010,8 @@ useEvents([
       <div class="practice-word" style="padding-top: 3.25rem">
         <!-- 顶部固定工具栏:进度条 + 操作按钮(替代原底部底栏) -->
         <TopToolbar @skipStep="skipStep" @back="goBack" />
-        <div class="fixed z-99999 center mt-3" v-if="statStore.timerPaused">
+        <!-- 计时暂停浮层:始终挂载,v-show 控制显隐,不参与下方互斥链(暂停时练习内容不被卸载) -->
+        <div class="fixed z-99999 center mt-3" v-show="statStore.timerPaused">
           <ToastComponent
             :duration="0"
             :anim="statStore.timerPauseReason !== 'auto_visibility'"
@@ -1022,7 +1023,7 @@ useEvents([
         </div>
 
         <WordMarkPickList
-          v-else-if="
+          v-if="
             settingStore.wordPracticeType === WordPracticeType.Identify &&
             data.wrongWords.length === 0 &&
             settingStore.identifyMethod === IdentifyMethod.QuickIdentify

@@ -173,3 +173,23 @@ scoped 样式 `.foo[data-v-父hash]` 需要元素带**父组件**的 data-v 属�
 **修复**:诊断脚本窗口改 `show: true` 并移到屏幕外(`x: -2000, y: -2000`),既不打扰用户动画也正常执行。
 
 **教训**:① Electron 诊断窗口测动画/过渡,必须 show:true(可移出屏幕);show:false 下 getBoundingClientRect 可用但动画/定时器行为不可信 ② 过渡类已应用但 transform 不动 → 先怀疑渲染环境,再怀疑 CSS ③ 同一脚本的另一个坑:练习词表大小用 `dict.perDayStudyNumber`(不是 setting 里的),设 1 时 next() 直接走结算、词永远不变,切词验证必须多词模式。
+
+## 36. 安装版 exe 冒烟在 Git Bash 下跑不了:electron 43 CLI 吞参数 + GUI 程序启动秒退(2026-08-06)
+
+**现象**:打包后验证安装版,`./EnglishLearner.exe --smoke-test` 报 `bad option: --smoke-test`(exit 9);不带参数启动秒退且不写 userData 日志;`-- --smoke-test` 则把参数当 app path 报 MODULE_NOT_FOUND;PowerShell/Git Bash 直启均查不到进程——一度误判为 asar 缺模块(误报:`npx asar list` 输出反斜杠路径 `\node_modules\ws`,grep 正斜杠 `node_modules/ws` 匹配 0,其实 ws 在)。
+
+**根因**:① Electron 43 的 exe 严格解析 CLI,未知 `--` 开关直接报 bad option;dev 模式 `npx electron . --smoke-test` 有 `.` 作 app path,后续参数才进 process.argv ② Git Bash/PowerShell 直启 GUI exe 时,程序立即退出(shell 环境限制),无日志无崩溃。
+
+**正确姿势**:① 安装版冒烟只在改 main.js/打包配置时必要,改渲染层用 dev 模式冒烟(`npx electron . --smoke-test --smoke-output=...`)即可,全绿=渲染层 OK ② 需要验证安装版 exe 时用 `explorer.exe "<绝对路径>"` 模拟双击启动(能正常跑),sleep 几秒后查 `%APPDATA%/EnglishLearner/logs/app.log` 的「应用启动 vX.X.X」记录 + tasklist 确认,再 taskkill ③ `npx asar list` 输出是反斜杠路径,grep 要转义或用 `grep -c "ws"`(按目录名)。
+
+**教训**:GUI 程序启动验证先怀疑 shell 环境,再怀疑代码;asar 内容检查别拿正斜杠 grep 反斜杠路径(先看一条原始输出再写过滤)。
+
+## 37. 暂停提示浮层用 v-if 与练习内容互斥 → 计时暂停时练习内容被整棵卸载(2026-08-06)
+
+**现象**:练习页长时间不操作(3 分钟)或切走窗口再切回,计时自动暂停的同时,**练习内容(单词/翻译/已输入字母)突然从屏幕上消失**,只剩一条居中的"计时已暂停"提示;恢复计时后内容重新出现,但当前单词已打字母、输入焦点全丢,要重打。
+
+**根因**:模板里暂停提示外层 `div` 用了 `v-if="statStore.timerPaused"`,和下方的 `WordMarkPickList(v-else-if)` / `TypeWord 容器(v-else)` 构成**互斥链**——提示浮层本意是 `fixed z-99999` 悬浮遮挡,但 v-if 一旦为真,练习主体整棵从 DOM 卸载,不是被盖住。暂停→恢复 = TypeWord 卸载→重挂,组件内部状态(input、错词标记等)全部清零。
+
+**修复**:浮层 div 改 `v-show`(始终挂载,仅显隐),从 v-if 链中拆出独立;`WordMarkPickList` 由 `v-else-if` 改 `v-if`,主体 `v-else` 保持不变。计时暂停逻辑(store 的 auto_idle/auto_visibility 分段计时)原样保留,恢复路径(打字/点提示关闭)不用动。
+
+**教训**:① **悬浮提示/遮罩不要用 v-if 与正文内容并列成互斥链**——`fixed` 定位的浮层本就不占文档流,用 `v-show` 或独立 `<Teleport>` 挂载,绝不卸载正文;② v-if/v-else-if/v-else 链里插新分支,先确认每个分支的 DOM 归属,`v-show` 不能插在 v-else 链中(会破坏互斥);③ "内容消失"类问题先查模板条件渲染链,再查数据逻辑。

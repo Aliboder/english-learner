@@ -101,6 +101,13 @@ const simpleWords = $computed({
     <SettingItem title="练习例句" desc="跟写模式输完单词后,接着跟打例句(逐句输入)">
       <Switch v-model="settingStore.practiceSentence" />
     </SettingItem>
+    <SettingItem v-if="settingStore.practiceSentence" title="例句练习数量" desc="每个单词跟打几条例句(单词例句不足时按实际数量,全部练完后进入下一个单词)">
+      <InputNumber v-model="settingStore.practiceSentenceCount" :min="1" :max="10" type="number" />
+      <span class="ml-4">{{ '条' }}</span>
+    </SettingItem>
+    <SettingItem v-if="settingStore.practiceSentence" title="例句纯字母输入" desc="开启:只需输入例句中的字母,空格/标点/数字自动跳过;关闭:需输入完整语句(含空格和标点)">
+      <Switch v-model="settingStore.practiceSentenceLettersOnly" />
+    </SettingItem>
     <SettingItem title="单词循环设置(仅跟写生效)" class="gap-0!">
       <RadioGroup v-model="settingStore.repeatCount">
         <Radio :value="1" size="default">1</Radio>

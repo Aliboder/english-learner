@@ -193,3 +193,17 @@ scoped 样式 `.foo[data-v-父hash]` 需要元素带**父组件**的 data-v 属�
 **修复**:浮层 div 改 `v-show`(始终挂载,仅显隐),从 v-if 链中拆出独立;`WordMarkPickList` 由 `v-else-if` 改 `v-if`,主体 `v-else` 保持不变。计时暂停逻辑(store 的 auto_idle/auto_visibility 分段计时)原样保留,恢复路径(打字/点提示关闭)不用动。
 
 **教训**:① **悬浮提示/遮罩不要用 v-if 与正文内容并列成互斥链**——`fixed` 定位的浮层本就不占文档流,用 `v-show` 或独立 `<Teleport>` 挂载,绝不卸载正文;② v-if/v-else-if/v-else 链里插新分支,先确认每个分支的 DOM 归属,`v-show` 不能插在 v-else 链中(会破坏互斥);③ "内容消失"类问题先查模板条件渲染链,再查数据逻辑。
+
+## 38. 词表 flex-wrap 列数随窗口跳变 + 词性固定占位空白(2026-08-06)
+
+**现象①(列数漂移)**:练习页词表卡片(flex-wrap 流式)小窗口双列、全屏后变单列,且单列时卡片不随容器变宽,右侧大片空白;列数随窗口大小来回跳。
+
+**根因**:`--panel-width` 是响应式的(main.scss:全屏 24rem / ≤1706px 20rem / ≤1439px 25rem),而词块固定宽 9.5rem + 翻译 `nowrap` 单行 → flex item `min-width:auto` 使词块实际宽度被长翻译内容**撑宽** → 列数 = floor(面板宽 ÷ 词块实际宽),随窗口宽度和词块内容长度共同漂移,无稳定预期。
+
+**修复**:词表改为**始终单列**(`flex-direction: column` + 词块 `width: 100%`),列数与窗口大小彻底解耦,无右侧空白。
+
+**现象②(词性与释义间空白)**:词表卡片里词性(adj.)和释义之间出现约 18px 空白。
+
+**根因**:`TranslationList` 的 `pos-space` 参数**默认 true**(词性固定 `min-width: 3rem` 占位,为 WordDetail 对齐设计)。旧 `WordItem` 传了 `:pos-space="false"`,新建的 `WordFlowList` 漏传 → 词性被撑到 3rem 宽,文字只占 ~30px,余出空白。
+
+**教训**:① 用 `flex-wrap` 做"多列自适应"布局时,item 显式宽度会被内容(`min-width:auto`)撑破,列数不可控——需要稳定列数就固定为单列/网格,别指望 wrap 列数稳定 ② 复用带"占位对齐"语义的组件参数(pos-space 类),新调用处必须显式传参,漏传默认值 = 隐蔽的布局空白 ③ 共享组件新调用点,先对照旧调用点的参数列表逐一核对。

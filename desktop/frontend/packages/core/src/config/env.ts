@@ -46,7 +46,7 @@ export const SoundFileOptions = [
 ]
 export const APP_VERSION = {
   key: 'english-learner-app-version',
-  version: 8, // v0.3.28:升号后启动检测 isNew 提示功能更新,查看后标记 seen 不再提示
+  version: 9, // v0.3.29:升号后启动检测 isNew 提示功能更新,查看后标记 seen 不再提示
 }
 export const SAVE_DICT_KEY = {
   key: 'typing-word-dict',

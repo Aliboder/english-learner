@@ -2,7 +2,7 @@
   "name": "english-learner",
   "productName": "EnglishLearner",
   "license": "GPL-3.0",
-  "version": "0.3.28",
+  "version": "0.3.29",
   "private": true,
   "author": "EnglishLearner",
   "description": "英语学习桌面应用 — 基于 TypeWords 的本地版",

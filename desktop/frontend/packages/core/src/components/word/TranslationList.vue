@@ -13,10 +13,12 @@ const props = withDefaults(
     showFull: boolean
     posSpace?: boolean // 词性是否需要固定占位
     showPlay?: boolean // 是否显示朗读按钮(练习页把按钮放在发音区,传 false;词表/查词等保持文档流按钮)
+    compact?: boolean // 词表紧凑模式:翻译横向单行排列,超出整行截断
   }>(),
   {
     posSpace: true,
     showPlay: true,
+    compact: false,
   }
 )
 
@@ -133,7 +135,7 @@ function playTranslationAudio() {
 </script>
 
 <template>
-  <div class="trans-list">
+  <div class="trans-list" :class="{ compact }">
     <!-- 无词性翻译:词性位置留空占位,保持与分组条目缩进一致 -->
     <div v-for="(tran, i) in noposTrans" :key="'n' + i" class="trans-item">
       <span class="pos" :class="{ 'pos-col': posSpace }"></span>
@@ -182,6 +184,35 @@ function playTranslationAudio() {
 <style scoped lang="scss">
 .trans-list {
   @apply flex flex-col gap-1;
+}
+
+// 词表紧凑模式:翻译最多 2 行折行显示,超出省略号(词性+释义行内排列,自动换行)
+.trans-list.compact {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  min-width: 0;
+
+  .pos-group {
+    display: contents; // 平铺词性分组,使所有释义都参与 2 行统计
+  }
+
+  .trans-item {
+    display: inline;
+    white-space: normal;
+    margin-right: 0.35rem;
+
+    .pos {
+      margin-right: 0.2rem;
+    }
+  }
+
+  // 词表不需要"展开/收起"与朗读按钮
+  .trans-toggle,
+  .trans-actions {
+    display: none;
+  }
 }
 
 .pos-group {

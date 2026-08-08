@@ -9,6 +9,7 @@ interface Props {
   excludeDictId?: string
   showTranslate?: boolean
   showWord?: boolean
+  compact?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
@@ -16,6 +17,7 @@ withDefaults(defineProps<Props>(), {
   excludeWords: [],
   showTranslate: true,
   showWord: true,
+  compact: false,
 })
 
 const emit = defineEmits<{
@@ -42,6 +44,7 @@ defineExpose({ scrollToBottom, scrollToItem })
         :show-translate="showTranslate"
         :disabled="excludeWords.includes(item.word)"
         :show-word="showWord"
+        :compact="compact"
         :item="item"
         :index="index"
         :active="active"

@@ -30,6 +30,8 @@ const emit = defineEmits<{
 
 //虚拟列表长度限制
 const limit = 200
+// 词条最小高度估算(练习页词表已横向紧凑化,条目高度约 50px;偏大导致滚动估算偏重)
+const MIN_ITEM_SIZE = 55
 const settingStore = useSettingStore()
 const listRef: any = $ref()
 
@@ -118,7 +120,7 @@ defineExpose({scrollToBottom, scrollToItem})
     v-if="list.length > limit"
     :items="list"
     ref="listRef"
-    :min-item-size="90"
+    :min-item-size="MIN_ITEM_SIZE"
     class="scroller"
   >
     <template v-slot="{ item, index, active }">

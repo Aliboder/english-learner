@@ -57,6 +57,8 @@ export interface SettingState {
   mobileNavCollapsed: boolean // 移动端底部导航栏收缩状态
   ignoreSymbol: boolean // 过滤符号
   practiceSentence: boolean // 练习例句
+  practiceSentenceCount: number // 例句练习数量(每个单词跟打几条,默认 3)
+  practiceSentenceLettersOnly: boolean // 例句纯字母输入模式(true=只需输入字母,空格/标点/数字自动跳过;false=完整语句逐字符输入)
 
   fsrsEasyLimit: number // 小于等于fsrsEasyLimit的卡片会评估为Easy
   fsrsGoodLimit: number // 小于等于fsrsEasyLimit且小于等于fsrsHardLimit的卡片会评估为Good
@@ -132,6 +134,8 @@ export const getDefaultSettingState = (): SettingState => ({
   mobileNavCollapsed: false,
   ignoreSymbol: true,
   practiceSentence: false,
+  practiceSentenceCount: 3,
+  practiceSentenceLettersOnly: false,
   fsrsEasyLimit: 0,
   fsrsGoodLimit: 3,
   fsrsHardLimit: 6,

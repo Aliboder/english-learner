@@ -25,7 +25,7 @@ import dayjs from 'dayjs'
 import TopToolbar from '@english-learner/core/components/word/TopToolbar.vue'
 import Panel from '@english-learner/core/components/Panel.vue'
 import { BaseIcon, Toast, ToastComponent, Tooltip } from '@english-learner/base'
-import WordList from '@english-learner/core/components/list/WordList.vue'
+import WordFlowList from '@english-learner/core/components/word/WordFlowList.vue'
 import TypeWord from '@english-learner/core/components/word/TypeWord.vue'
 import Empty from '@english-learner/core/components/Empty.vue'
 import { useBaseStore } from '@english-learner/core/stores/base.ts'
@@ -1077,7 +1077,7 @@ useEvents([
           </div>
         </template>
         <div class="panel-page-item pl-4">
-          <WordList
+          <WordFlowList
             v-if="data.words.length"
             :is-active="settingStore.showPanel"
             :static="false"
@@ -1086,10 +1086,9 @@ useEvents([
             :list="data.words"
             :activeIndex="data.index"
             :excludeWords="data.excludeWords"
-            :exclude-dict-id="store.sdict.id ? String(store.sdict.id) : undefined"
-            @click="(val: any) => (data.index = val.index)"
+            @click="(val: number) => (data.index = val)"
           >
-          </WordList>
+          </WordFlowList>
           <Empty v-else />
         </div>
       </Panel>

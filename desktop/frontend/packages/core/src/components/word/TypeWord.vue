@@ -100,9 +100,59 @@ let noteInputValue = $ref('')
 let displayWord = $computed(() => {
   return props.word.word.slice(input.length + wrong.length)
 })
-let displaySentence = $computed(() => {
-  return props.word.sentences[currentPracticeSentenceIndex].c.slice(input.length + wrong.length)
-})
+/** 单词输入区已输入部分:以原词为底逐字符显示(保持原词大小写,忽略大小写开启时打小写也显示原词大写) */
+function wordInputParts() {
+  const w = props.word.word
+  const parts: { ch: string; cls: string }[] = []
+  for (let i = 0; i < input.length + wrong.length && i < w.length; i++) {
+    if (i < input.length) parts.push({ ch: w[i], cls: 'input' })
+    else parts.push({ ch: wrong, cls: 'wrong' })
+  }
+  return parts
+}
+/**
+ * 例句输入区渲染:以原句为底逐字符显示,输入进度通过颜色表达,保持原句大小写/空格/标点美观。
+ * - 已输入的字母:原句字符,绿色(忽略大小写开启时用户打小写也显示原句大写)
+ * - 剩余字母:原句字符,灰色
+ * - 空格/标点/数字:始终原样显示(纯字母模式下自动跳过,视觉保留)
+ * - 打错的键:错误字符红色显示(500ms 后恢复)
+ */
+function sentenceDisplayParts() {
+  const s = props.word.sentences[currentPracticeSentenceIndex]?.c ?? ''
+  const parts: { ch: string; cls: string }[] = []
+  if (isSentenceLettersOnly()) {
+    // 纯字母模式:字母按输入进度着色,其余字符原样
+    let typed = input.replace(/[^A-Za-z]/g, '').length
+    let pendingWrong = wrong && /[A-Za-z]/.test(wrong) ? wrong : ''
+    for (const ch of s) {
+      if (/[A-Za-z]/.test(ch)) {
+        if (pendingWrong) {
+          parts.push({ ch: pendingWrong, cls: 'wrong' })
+          pendingWrong = ''
+        } else if (typed > 0) {
+          parts.push({ ch, cls: 'input' })
+          typed--
+        } else {
+          parts.push({ ch, cls: 'letter' })
+        }
+      } else {
+        parts.push({ ch, cls: 'letter' })
+      }
+    }
+  } else {
+    // 完整语句模式:逐字符对应,已输入绿色,错误红色,剩余灰色
+    for (let i = 0; i < s.length; i++) {
+      if (i < input.length) {
+        parts.push({ ch: s[i], cls: 'input' })
+      } else if (i < input.length + wrong.length) {
+        parts.push({ ch: wrong, cls: 'wrong' })
+      } else {
+        parts.push({ ch: s[i], cls: 'letter' })
+      }
+    }
+  }
+  return parts
+}
 
 let isSelfAssessment = $computed(() => {
   return (
@@ -205,6 +255,8 @@ function repeat() {
     wrong = input = ''
     wordRepeatCount++
     inputLock = false
+    // 单词循环重打:回到单词阶段(例句已全部练完,currentPracticeSentenceIndex 停在越界值,不重置会卡死在例句模式)
+    currentPracticeSentenceIndex = -1
 
     if (settingStore.wordSound) playWord(WordPlayTrigger.RepeatWord)
   }, settingStore.waitTimeForChangeWord)
@@ -217,6 +269,11 @@ const right = $computed(() => {
   let b
   if (isTypingSentence()) {
     b = props.word.sentences[currentPracticeSentenceIndex].c
+    // 例句纯字母模式:双方只保留字母(空格/标点/数字自动跳过,不参与判定)
+    if (settingStore.practiceSentenceLettersOnly) {
+      a = a.replace(/[^A-Za-z]/g, '')
+      b = b.replace(/[^A-Za-z]/g, '')
+    }
   } else {
     b = props.word.word
   }
@@ -315,7 +372,11 @@ async function onTyping(e: KeyboardEvent) {
     return
   }
 
-  const target = props.word.word
+  // 例句练习模式(打完单词后逐句跟打)下,判定目标为当前例句,否则为单词本身;
+  // 后续逐键比对(374-411)/完成判定(435)均引用 target,一处切换即全部生效
+  const target = isTypingSentence()
+    ? props.word.sentences[currentPracticeSentenceIndex]?.c ?? ''
+    : props.word.word
   const targetVolumeIcon = volumeIconRef
   // 输入完成会锁死不能再输入
   if (inputLock) {
@@ -355,6 +416,8 @@ async function onTyping(e: KeyboardEvent) {
     }
     return
   }
+  // 例句纯字母模式:例句输入中(未完成)空格/标点/数字等非字母键无操作(自动跳过,不判错不输入;例句完成后空格仍是切换键,不受影响)
+  if (isSentenceLettersOnly() && e.key.length === 1 && !/[A-Za-z]/.test(e.key)) return
   inputLock = true
   let letter = e.key
   // console.log('letter',letter)
@@ -370,44 +433,48 @@ async function onTyping(e: KeyboardEvent) {
     inputLock = false
     onTyping(e)
   } else {
+    // 例句纯字母模式:判定目标与当前位置都只保留字母(逐键比对/中文标点特判/完成判定共用)
+    const lettersOnly = isSentenceLettersOnly()
+    const judgeTarget = lettersOnly ? target.replace(/[^A-Za-z]/g, '') : target
+    const judgePos = lettersOnly ? input.replace(/[^A-Za-z]/g, '').length : input.length
     let right = false
     if (settingStore.ignoreCase) {
-      right = letter.toLowerCase() === target[input.length].toLowerCase()
+      right = letter.toLowerCase() === judgeTarget[judgePos].toLowerCase()
     } else {
-      right = letter === target[input.length]
+      right = letter === judgeTarget[judgePos]
     }
     //针对中文的特殊判断
     if (
       e.shiftKey &&
-      (('！' === target[input.length] && e.code === 'Digit1') ||
-        ('￥' === target[input.length] && e.code === 'Digit4') ||
-        ('…' === target[input.length] && e.code === 'Digit6') ||
-        ('（' === target[input.length] && e.code === 'Digit9') ||
-        ('—' === target[input.length] && e.code === 'Minus') ||
-        ('？' === target[input.length] && e.code === 'Slash') ||
-        ('》' === target[input.length] && e.code === 'Period') ||
-        ('《' === target[input.length] && e.code === 'Comma') ||
-        ('“' === target[input.length] && e.code === 'Quote') ||
-        ('”' === target[input.length] && e.code === 'Quote') ||
-        ('：' === target[input.length] && e.code === 'Semicolon') ||
-        ('）' === target[input.length] && e.code === 'Digit0'))
+      (('！' === judgeTarget[judgePos] && e.code === 'Digit1') ||
+        ('￥' === judgeTarget[judgePos] && e.code === 'Digit4') ||
+        ('…' === judgeTarget[judgePos] && e.code === 'Digit6') ||
+        ('（' === judgeTarget[judgePos] && e.code === 'Digit9') ||
+        ('—' === judgeTarget[judgePos] && e.code === 'Minus') ||
+        ('？' === judgeTarget[judgePos] && e.code === 'Slash') ||
+        ('》' === judgeTarget[judgePos] && e.code === 'Period') ||
+        ('《' === judgeTarget[judgePos] && e.code === 'Comma') ||
+        ('“' === judgeTarget[judgePos] && e.code === 'Quote') ||
+        ('”' === judgeTarget[judgePos] && e.code === 'Quote') ||
+        ('：' === judgeTarget[judgePos] && e.code === 'Semicolon') ||
+        ('）' === judgeTarget[judgePos] && e.code === 'Digit0'))
     ) {
       right = true
-      letter = target[input.length]
+      letter = judgeTarget[judgePos]
     }
     if (
       !e.shiftKey &&
-      (('、' === target[input.length] && e.code === 'Slash') ||
-        ('。' === target[input.length] && e.code === 'Period') ||
-        ('，' === target[input.length] && e.code === 'Comma') ||
-        ('‘' === target[input.length] && e.code === 'Quote') ||
-        ('’' === target[input.length] && e.code === 'Quote') ||
-        ('；' === target[input.length] && e.code === 'Semicolon') ||
-        ('【' === target[input.length] && e.code === 'BracketLeft') ||
-        ('】' === target[input.length] && e.code === 'BracketRight'))
+      (('、' === judgeTarget[judgePos] && e.code === 'Slash') ||
+        ('。' === judgeTarget[judgePos] && e.code === 'Period') ||
+        ('，' === judgeTarget[judgePos] && e.code === 'Comma') ||
+        ('‘' === judgeTarget[judgePos] && e.code === 'Quote') ||
+        ('’' === judgeTarget[judgePos] && e.code === 'Quote') ||
+        ('；' === judgeTarget[judgePos] && e.code === 'Semicolon') ||
+        ('【' === judgeTarget[judgePos] && e.code === 'BracketLeft') ||
+        ('】' === judgeTarget[judgePos] && e.code === 'BracketRight'))
     ) {
       right = true
-      letter = target[input.length]
+      letter = judgeTarget[judgePos]
     }
     // console.log('e', e, e.code, e.shiftKey, word[input.length])
 
@@ -432,7 +499,8 @@ async function onTyping(e: KeyboardEvent) {
     // 更新当前单词信息
     updateCurrentWordInfo()
     //不需要把inputLock设为false，输入完成不能再输入了，只能删除，删除会打开锁
-    if (input.toLowerCase() === target.toLowerCase()) {
+    const inputForJudge = lettersOnly ? input.replace(/[^A-Za-z]/g, '') : input
+    if (inputForJudge.toLowerCase() === judgeTarget.toLowerCase()) {
       wordCompletedTime = Date.now() // 记录单词完成的时间戳
       playCorrect()
       if (
@@ -445,6 +513,12 @@ async function onTyping(e: KeyboardEvent) {
         if (settingStore.autoNextWord) {
           // 自动切换:短暂延时后跳转到下一个单词
           completeTypeWord(true)
+        } else if (isTypingSentence()) {
+          // 例句完成 + 手动切换:停留展示,按空格切下一句/下一个单词(与「自动切换」开关联动,不自动跳过)
+          showWordResult.value = true
+        } else if (settingStore.practiceSentence && props.word.sentences.length > 0) {
+          // 单词完成 + 例句练习:例句是当前单词练习的一部分,直接自动进入例句流程(不等待空格)
+          completeTypeWord(false)
         } else {
           // 手动切换:停留在当前单词展示完整信息(音标/翻译/例句等),按空格键切换到下一个
           showWordResult.value = true
@@ -473,10 +547,27 @@ function isTypingSentence() {
   return currentPracticeSentenceIndex !== -1
 }
 
+/** 例句纯字母输入模式:例句输入中且设置开启(空格/标点/数字自动跳过,只需输入字母) */
+function isSentenceLettersOnly(): boolean {
+  return isTypingSentence() && settingStore.practiceSentenceLettersOnly
+}
+
+/**
+ * 当前练习目标高亮(仅例句练习开启时生效):只有"正在输入"(未完成)的目标才高亮,
+ * 输入完成后立即消失。targetIndex = -1 表示单词区,否则为例句下标。
+ */
+function practiceHighlight(targetIndex: number): boolean {
+  if (!settingStore.practiceSentence) return false
+  if (targetIndex === -1) return currentPracticeSentenceIndex === -1 && !right
+  return currentPracticeSentenceIndex === targetIndex && !right
+}
+
 function completeTypeWord(delay: boolean) {
   if (settingStore.wordPracticeType === WordPracticeType.FollowWrite && settingStore.practiceSentence) {
     currentPracticeSentenceIndex++
-    if (currentPracticeSentenceIndex < props.word.sentences.length) {
+    // 例句练习数量上限(设置-练习-例句练习数量,默认 3);例句不足时按实际数量
+    const sentenceCount = Math.min(props.word.sentences.length, Math.max(1, settingStore.practiceSentenceCount || 0))
+    if (currentPracticeSentenceIndex < sentenceCount) {
       // 还有下一个句子
       inputLock = false
       wrong = input = ''
@@ -798,7 +889,10 @@ defineExpose({
         <div
           id="word"
           class="word my-1"
-          :class="wrong && !isTypingSentence() ? 'is-wrong' : ''"
+          :class="[
+            wrong && !isTypingSentence() ? 'is-wrong' : '',
+            practiceHighlight(-1) ? 'word-highlight' : '',
+          ]"
           :style="{
             fontSize: settingStore.fontSize.wordForeignFontSize + 'px',
             letterSpacing: settingStore.wordLetterSpacing + 'px',
@@ -809,13 +903,12 @@ defineExpose({
           <!-- 2026-08-06 统一单行结构:默写新词(Dictation)不再单独开拼写格子,
                与跟写/听写/拼写一致,直接在词位输入(单词由 dictation 开关控制遮挡) -->
           <div v-if="currentPracticeSentenceIndex === -1">
-            <span class="input" v-if="input">{{ input }}</span>
-            <span class="wrong" v-if="wrong">{{ wrong }}</span>
-            <!-- 默写占位:连续横线(非逐字母下划线),宽度随词长,输入推进时保持 -->
-            <span class="letter dict-line" v-if="settingStore.dictation && !showFullWord">
+            <!-- 已输入部分:原词字符绿色(保持原词大小写);错误字符红色 -->
+            <span v-for="(part, i) in wordInputParts()" :key="i" :class="part.cls">{{ part.ch }}</span>
+            <!-- 剩余部分:整体 span(默写占位连续横线不逐字母断裂),灰色剩余字母 -->
+            <span class="letter" :class="settingStore.dictation && !showFullWord ? 'dict-line' : ''">
               {{ displayWord }}
             </span>
-            <span class="letter" v-else>{{ displayWord }}</span>
           </div>
           <div v-else>
             <span class="input">{{ word.word }}</span>
@@ -928,6 +1021,7 @@ defineExpose({
             :class="{
               'is-wrong': wrong && currentPracticeSentenceIndex === index,
               'is-playing': highlightedSentenceIndex === index,
+              'sentence-highlight': practiceHighlight(index),
             }"
             v-for="(item, index) in word.sentences"
             :key="index"
@@ -941,9 +1035,8 @@ defineExpose({
                 />
               </div>
               <div v-else>
-                <span class="input" v-if="input">{{ input }}</span>
-                <span class="wrong" v-if="wrong">{{ wrong }}</span>
-                <span class="letter">{{ displaySentence }}</span>
+                <!-- 原句回填渲染:保持原句大小写/空格/标点,输入进度用颜色表达 -->
+                <span v-for="(part, i) in sentenceDisplayParts()" :key="i" :class="part.cls">{{ part.ch }}</span>
               </div>
               <!-- 例句朗读:点击喇叭播放(后台已预加载缓存,零等待;不自动播放) -->
               <VolumeIcon :title="'朗读例句'" :simple="true" @click="playSentence(index, { highlight: true })" />
@@ -1156,6 +1249,15 @@ defineExpose({
 
   .is-wrong {
     animation: shake 0.82s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  }
+
+  // 当前练习目标高亮(例句练习开启时):正在输入的单词/例句淡紫背景 + 内描边,输入完成自动消失
+  // padding 让高亮区域比文字本身大一圈(贴文字会显得区域偏窄)
+  .word-highlight {
+    border-radius: 0.5rem;
+    background: rgba(124, 58, 237, 0.1);
+    box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.25);
+    padding: 0.15rem 0.6rem;
   }
 
   // ---- 单格布局(2026-08-06 重构:左右词隐藏,当前词居中;切词用方向性滑动动画) ----
